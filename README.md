@@ -25,15 +25,15 @@ AI Refactor 1 files(s)/dir(s) '["spec/models/my_thing_spec.rb"]' with rspec_to_m
 ====================
 Processing spec/models/my_thing_spec.rb...
 [Run spec spec/models/my_thing_spec.rb... (bundle exec rspec spec/models/my_thing_spec.rb)]
-Do you wish to overwrite test/models/company_buyer_test.rb? (y/n)
+Do you wish to overwrite test/models/my_thing_test.rb? (y/n)
 y
 [Converting spec/models/my_thing_spec.rb...]
 [Generate AI output. Generation attempts left: 3]
 [OpenAI finished, with reason 'stop'...]
 [Used tokens: 1869]
-[Converted spec/models/my_thing_spec.rb to test/models/company_buyer_test.rb...]
-[Run generated test file test/models/company_buyer_test.rb (bundle exec rails test test/models/company_buyer_test.rb)...]
-[Done converting spec/models/my_thing_spec.rb to test/models/company_buyer_test.rb...]
+[Converted spec/models/my_thing_spec.rb to test/models/my_thing_test.rb...]
+[Run generated test file test/models/my_thing_test.rb (bundle exec rails test test/models/my_thing_test.rb)...]
+[Done converting spec/models/my_thing_spec.rb to test/models/my_thing_test.rb...]
 No differences found! Conversion worked!
 Refactor succeeded on spec/models/my_thing_spec.rb
 
