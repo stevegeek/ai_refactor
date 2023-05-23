@@ -1,34 +1,44 @@
 # AI Refactor
 
-Uses ChatGPT to convert RSpec tests to minitest tests.
+AI Refactor is an experimental tool to see how AI (specifically [OpenAI's ChatGPT](https://platform.openai.com/)) can be used to help apply refactoring to code.
 
-Convert one file at a time, or whole directories.
+The goal is **not** that the AI decides what refactoring to do, but rather, given refactoring tasks specified by the human user,
+the AI can help identify which code to change and apply the relevant refactor.
 
-See `ai_refactor --help` for more information.
+This is based on the assumption that the LLM AIs are pretty good at identifying patterns.
 
-```shell
-stephen$ OPENAI_API_KEY=my-key ai_refactor -i spec/models/my_thing_spec.rb -p prompts/rspec_to_minitest.md -v
-Convert all specs in 'spec/models/my_thing_spec.rb' to minitest tests (with prompt in file prompts/rspec_to_minitest.md)...
+## Available refactors
+
+Currently only one is available:
+
+### `rspec_to_minitest`
+
+Converts RSpec tests to minitest tests for Rails test suites (ie generated minitest tests are actually `ActiveSupport::TestCase`s).
+
+The tool first runs the original RSpec spec file and then runs the generated minitest test file, and compares the output of both.
+
+The comparison is simply the count of successful and failed tests but this is probably enough to determine if the conversion worked.
+
+```shellq
+stephen$ OPENAI_API_KEY=my-key ai_refactor rspec_to_minitest spec/models/my_thing_spec.rb -v
+AI Refactor 1 files(s)/dir(s) '["spec/models/my_thing_spec.rb"]' with rspec_to_minitest refactor
 ====================
 Processing spec/models/my_thing_spec.rb...
 [Run spec spec/models/my_thing_spec.rb... (bundle exec rspec spec/models/my_thing_spec.rb)]
-Original test run results:
->> Examples: 3, Failures: 0, Pendings: 0
 Do you wish to overwrite test/models/company_buyer_test.rb? (y/n)
 y
 [Converting spec/models/my_thing_spec.rb...]
+[Generate AI output. Generation attempts left: 3]
 [OpenAI finished, with reason 'stop'...]
-Used tokens: 1867
+[Used tokens: 1869]
 [Converted spec/models/my_thing_spec.rb to test/models/company_buyer_test.rb...]
 [Run generated test file test/models/company_buyer_test.rb (bundle exec rails test test/models/company_buyer_test.rb)...]
-Translated test file results:
->> Runs: 3, Failures: 0, Skips: 0
 [Done converting spec/models/my_thing_spec.rb to test/models/company_buyer_test.rb...]
 No differences found! Conversion worked!
-====================
+Refactor succeeded on spec/models/my_thing_spec.rb
+
 Done processing all files!
 ```
-
 
 ## Installation
 
@@ -42,17 +52,21 @@ If bundler is not being used to manage dependencies, install the gem by executin
 
 ## Usage
 
+See `ai_refactor --help` for more information.
+
 ```
-Usage: ai_refactor [options]
-    -p, --prompt PROMPT_FILE         [Required] Specify the path to the ChatGPT 'system' prompt.
-    -i, --input FILE_OR_DIR          [Required] Specify the path to the input(s).
-    -w, --working DIR                Specify the working directory to run commands (eg 'rspec') in.
+Usage: ai_refactor REFACTOR_TYPE INPUT_FILE_OR_DIR [options]
+
+Where REFACTOR_TYPE is one of: ["generic", "rspec_to_minitest", "minitest_to_rspec"]
+
+    -p, --prompt PROMPT_FILE         Specify path to a text file that contains the ChatGPT 'system' prompt.
     -c, --continue [MAX_MESSAGES]    If ChatGPT stops generating due to the maximum token count being reached, continue to generate more messages, until a stop condition or MAX_MESSAGES. MAX_MESSAGES defaults to 3
     -m, --model MODEL_NAME           Specify a ChatGPT model to use (default gpt-3.5-turbo).
         --temperature TEMP           Specify the temperature parameter for ChatGPT (default 0.7).
         --max-tokens MAX_TOKENS      Specify the max number of tokens of output ChatGPT can generate. Max will depend on the size of the prompt (default 1500)
     -t, --timeout SECONDS            Specify the max wait time for ChatGPT response.
     -v, --verbose                    Show extra output and progress info
+    -d, --debug                      Show debugging output to help diagnose issues
     -h, --help                       Prints this help
 ```
 
