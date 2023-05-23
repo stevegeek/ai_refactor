@@ -11,7 +11,7 @@ This is based on the assumption that the LLM AIs are pretty good at identifying 
 
 Currently only one is available:
 
-### `rspec_to_minitest`
+### `rspec_to_minitest_rails`
 
 Converts RSpec tests to minitest tests for Rails test suites (ie generated minitest tests are actually `ActiveSupport::TestCase`s).
 
@@ -20,8 +20,8 @@ The tool first runs the original RSpec spec file and then runs the generated min
 The comparison is simply the count of successful and failed tests but this is probably enough to determine if the conversion worked.
 
 ```shellq
-stephen$ OPENAI_API_KEY=my-key ai_refactor rspec_to_minitest spec/models/my_thing_spec.rb -v
-AI Refactor 1 files(s)/dir(s) '["spec/models/my_thing_spec.rb"]' with rspec_to_minitest refactor
+stephen$ OPENAI_API_KEY=my-key ai_refactor rspec_to_minitest_rails spec/models/my_thing_spec.rb -v
+AI Refactor 1 files(s)/dir(s) '["spec/models/my_thing_spec.rb"]' with rspec_to_minitest_rails refactor
 ====================
 Processing spec/models/my_thing_spec.rb...
 [Run spec spec/models/my_thing_spec.rb... (bundle exec rspec spec/models/my_thing_spec.rb)]
@@ -57,7 +57,7 @@ See `ai_refactor --help` for more information.
 ```
 Usage: ai_refactor REFACTOR_TYPE INPUT_FILE_OR_DIR [options]
 
-Where REFACTOR_TYPE is one of: ["generic", "rspec_to_minitest", "minitest_to_rspec"]
+Where REFACTOR_TYPE is one of: ["generic", "rspec_to_minitest_rails", "minitest_to_rspec"]
 
     -p, --prompt PROMPT_FILE         Specify path to a text file that contains the ChatGPT 'system' prompt.
     -c, --continue [MAX_MESSAGES]    If ChatGPT stops generating due to the maximum token count being reached, continue to generate more messages, until a stop condition or MAX_MESSAGES. MAX_MESSAGES defaults to 3

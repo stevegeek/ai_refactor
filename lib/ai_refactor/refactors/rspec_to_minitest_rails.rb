@@ -7,7 +7,7 @@ require_relative "tests/test_run_diff_report"
 
 module AIRefactor
   module Refactors
-    class RspecToMinitest < Generic
+    class RspecToMinitestRails < Generic
       def run
         spec_runner = AIRefactor::Tests::RSpecRunner.new(input_file)
         logger.verbose "Run spec #{input_file}... (#{spec_runner.command})"
