@@ -5,30 +5,24 @@ require "json"
 
 module AIRefactor
   class FileProcessor
-    attr_reader :file_path
+    attr_reader :file_path, :output_path, :logger
 
-    def initialize(file_path, prompt_file_path:, ai_client:, working_dir: nil)
+    def initialize(file_path, output_path, prompt_file_path:, ai_client:, logger:)
       @file_path = file_path
+      @output_path = output_path
       @prompt_file_path = prompt_file_path
       @ai_client = ai_client
-      @working_dir = working_dir
-    end
-
-    def output_path
-      @file_path.gsub("_spec.rb", "_test.rb").gsub("spec/", "test/")
-    end
-
-    def resolved_output_path
-      @output_path ||= File.join(@working_dir || "", output_path)
+      @logger = logger
     end
 
     def output_exists?
-      File.exist?(resolved_output_path)
+      File.exist?(output_path)
     end
 
     def process!(options)
+      logger.debug("Processing #{file_path} with prompt in #{@prompt_file_path}")
       prompt = File.read(@prompt_file_path)
-      input = File.read(File.join(@working_dir || "", @file_path))
+      input = File.read(@file_path)
       messages = [
         {role: "system", content: prompt},
         {role: "user", content: "Convert: ```#{input}```"}
@@ -36,7 +30,8 @@ module AIRefactor
       content, finished_reason, usage = generate_next_message(messages, prompt, options, options[:ai_max_attempts] || 3)
 
       if content && content.length > 0
-        File.write(resolved_output_path, content.gsub("```", ""))
+        processed = block_given? ? yield(content) : content
+        File.write(output_path, processed)
       end
 
       [content, finished_reason, usage]
@@ -45,8 +40,10 @@ module AIRefactor
     private
 
     def generate_next_message(messages, prompt, options, attempts_left)
-      puts "Attempts left: #{options}"
-      puts attempts_left
+      logger.verbose "Generate AI output. Generation attempts left: #{attempts_left}"
+      logger.debug "Options: #{options.inspect}"
+      logger.debug "Messages: #{messages.inspect}"
+
       response = @ai_client.chat(
         parameters: {
           model: options[:ai_model] || "gpt-3.5-turbo",

@@ -7,17 +7,16 @@ require_relative "../lib/ai_refactor"
 
 options = {}
 
+supported_refactors = AIRefactor::Refactors.all
+supported_names = AIRefactor::Refactors.names
+
+# General options for all refactor types
 option_parser = OptionParser.new do |parser|
-  parser.on("-p", "--prompt PROMPT_FILE", String, "[Required] Specify the path to the ChatGPT 'system' prompt.") do |f|
+  parser.banner = "Usage: ai_refactor REFACTOR_TYPE INPUT_FILE_OR_DIR [options]\n\nWhere REFACTOR_TYPE is one of: #{supported_names}\n\n"
+
+  # todo: support for a sort of generic process which uses a custom prompt file
+  parser.on("-p", "--prompt PROMPT_FILE", String, "Specify path to a text file that contains the ChatGPT 'system' prompt.") do |f|
     options[:prompt_file_path] = f
-  end
-
-  parser.on("-i", "--input FILE_OR_DIR", String, "[Required] Specify the path to the input(s).") do |f|
-    options[:input_file_path] = f
-  end
-
-  parser.on("-w", "--working DIR", String, "Specify the working directory to run commands (eg 'rspec') in.") do |d|
-    options[:working_dir] = d
   end
 
   parser.on("-c", "--continue [MAX_MESSAGES]", Integer, "If ChatGPT stops generating due to the maximum token count being reached, continue to generate more messages, until a stop condition or MAX_MESSAGES. MAX_MESSAGES defaults to 3") do |c|
@@ -44,6 +43,18 @@ option_parser = OptionParser.new do |parser|
     options[:verbose] = true
   end
 
+  parser.on("-d", "--debug", "Show debugging output to help diagnose issues") do
+    options[:debug] = true
+  end
+
+  supported_refactors.each do |_name, refactorer|
+    refactorer.command_line_options.each do |option|
+      parser.on(option[:short], option[:long], option[:type], option[:help]) do |o|
+        options[option[:key]] = o
+      end
+    end
+  end
+
   parser.on("-h", "--help", "Prints this help") do
     puts parser
     exit
@@ -52,17 +63,15 @@ end
 
 option_parser.parse!
 
-if options[:prompt_file_path].nil? || options[:input_file_path].nil?
+logger = AIRefactor::Logger.new(verbose: options[:verbose], debug: options[:debug])
+
+refactoring_type = ARGV.shift
+input_file_path = ARGV
+
+if !AIRefactor::Refactors.supported?(refactoring_type) || input_file_path.nil? || input_file_path.empty?
   puts option_parser.help
   exit 1
 end
-
-prompt_file_path = options[:prompt_file_path]
-input_file_path = options[:input_file_path]
-verbose = options[:verbose]
-
-puts "Convert all specs in '#{input_file_path}' to minitest tests (with prompt in file #{prompt_file_path})..."
-puts "====================\n"
 
 OpenAI.configure do |config|
   config.access_token = ENV.fetch("OPENAI_API_KEY")
@@ -70,89 +79,24 @@ OpenAI.configure do |config|
   config.request_timeout = options[:ai_timeout] || 240
 end
 
-client = OpenAI::Client.new
+refactorer = AIRefactor::Refactors.get(refactoring_type)
 
-inputs = Dir.exist?(input_file_path) ? Dir.glob(File.join(input_file_path, "*_spec.rb")) : [input_file_path]
+inputs = input_file_path.map do |path|
+  File.exist?(path) ? path : Dir.glob(path)
+end.flatten
+
+logger.info "AI Refactor #{inputs.size} files(s)/dir(s) '#{input_file_path}' with #{refactorer.refactor_name} refactor\n"
+logger.info "====================\n"
+
 inputs.each do |file|
-  puts "Processing #{file}..."
+  logger.info "Processing #{file}..."
 
-  spec_runner = AIRefactor::Tests::RSpecRunner.new(file, working_dir: options[:working_dir])
-  puts "[Run spec #{file}... (#{spec_runner.command})]".colorize(:light_blue) if verbose
+  refactor = refactorer.new(file, options, logger)
 
-  spec_run = spec_runner.run
-
-  if spec_run.failed?
-    puts "[Skipping #{file}...]".colorize(:light_blue)
-    puts "Failed to run #{file}, exited with status #{spec_run.exitstatus}. Stdout: #{spec_run.stdout}\n\nStderr: #{spec_run.stderr}\n\n".colorize(:red)
-    next
-  end
-
-  puts "Original test run results:".colorize(:light_black) if verbose
-  puts ">> Examples: #{spec_run.example_count}, Failures: #{spec_run.failure_count}, Pendings: #{spec_run.pending_count}".colorize(:light_black) if verbose
-
-  processor = AIRefactor::FileProcessor.new(file, prompt_file_path: prompt_file_path, ai_client: client, working_dir: options[:working_dir])
-  resolved_output_path = processor.resolved_output_path
-
-  if processor.output_exists?
-    puts "Do you wish to overwrite #{resolved_output_path}? (y/n)"
-    answer = $stdin.gets.chomp
-    unless answer == "y" || answer == "Y"
-      puts "[Skipping #{file}...]".colorize(:light_blue)
-      next
-    end
-  end
-
-  puts "[Converting #{file}...]".colorize(:light_blue) if verbose
-
-  begin
-    output_content, finished_reason, usage = processor.process!(options)
-  rescue => e
-    puts "Request to OpenAI failed: #{e.message}".colorize(:red)
-    puts "Skipping #{file}...".colorize(:light_blue)
-    next
-  end
-
-  puts "[OpenAI finished, with reason '#{finished_reason}'...]".colorize(:light_blue) if verbose
-  puts "Used tokens: #{usage["total_tokens"]}".colorize(:light_black) if verbose && usage
-
-  if finished_reason == "length"
-    puts "Translation may contain an incomplete output as the max token length was reached. You can try using the '--continue' option next time to increase the length of generated output.".colorize(:yellow)
-    puts "Continuing to test the translated file... but it is likely to fail.".colorize(:yellow)
-  end
-
-  if !output_content || output_content.length == 0
-    puts "[Skipping #{file}, no translated output...]".colorize(:light_blue)
-    puts "Failed to translate #{file}, finished reason #{finished_reason}".colorize(:red)
-    next
-  end
-
-  puts "[Converted #{file} to #{resolved_output_path}...]".colorize(:light_blue) if verbose
-
-  minitest_runner = AIRefactor::Tests::MinitestRunner.new(processor.output_path, working_dir: options[:working_dir])
-
-  puts "[Run generated test file #{resolved_output_path} (#{minitest_runner.command})...]".colorize(:light_blue) if verbose
-  test_run = minitest_runner.run
-
-  if test_run.failed?
-    puts "[Skipping #{file}...]".colorize(:light_blue)
-    puts "Failed to run translated #{resolved_output_path}, exited with status #{test_run.exitstatus}. Stdout: #{test_run.stdout}\n\nStderr: #{test_run.stderr}\n\n".colorize(:red)
-    puts "Conversion failed!".colorize(color: :red, mode: :bold)
-    next
-  end
-
-  puts "Translated test file results:".colorize(:light_black) if verbose
-  puts ">> Runs: #{test_run.example_count}, Failures: #{test_run.failure_count}, Skips: #{test_run.pending_count}".colorize(:light_black) if verbose
-
-  report = AIRefactor::Tests::TestRunDiffReport.new(spec_run, test_run)
-
-  if report.no_differences?
-    puts "[Done converting #{file} to #{resolved_output_path}...]".colorize(:light_blue)
-    puts "No differences found! Conversion worked!".colorize(color: :green, mode: :bold)
+  if refactor.run
+    logger.success "Refactor succeeded on #{file}\n"
   else
-    puts report.diff.colorize(:yellow)
-    puts "[Done converting #{file} to #{resolved_output_path}...]".colorize(:light_blue)
-    puts "Differences found! Conversion failed!".colorize(color: :red, mode: :bold)
+    logger.warn "Refactor failed on #{file}\n"
   end
-  puts "====================\n"
 end
-puts "Done processing all files!".colorize(color: :light_green)
+logger.info "Done processing all files!"

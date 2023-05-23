@@ -5,15 +5,13 @@ require "open3"
 module AIRefactor
   module Tests
     class RSpecRunner
-      def initialize(file_path, working_dir: nil, command_template: "bundle exec rspec __FILE__")
+      def initialize(file_path, command_template: "bundle exec rspec __FILE__")
         @file_path = file_path
-        @working_dir = working_dir
         @command_template = command_template
       end
 
       def command
-        template = @command_template.gsub("__FILE__", @file_path)
-        @working_dir ? "cd #{@working_dir} && #{template}" : template
+        @command_template.gsub("__FILE__", @file_path)
       end
 
       def run
