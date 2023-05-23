@@ -29,7 +29,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   # Uncomment to register a new dependency of your gem
-  spec.add_dependency "colorize"
-  spec.add_dependency "open3"
+  spec.add_dependency "colorize", "< 2.0"
+  spec.add_dependency "open3", "< 2.0"
   spec.add_dependency "ruby-openai", ">= 3.4.0", "< 5.0"
 end
