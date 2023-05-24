@@ -50,6 +50,8 @@ module AIRefactor
       private
 
       def output_file_path
+        return output_file_path_from_template if output_template_path
+
         path = options[:output_file_path]
         return unless path
 
@@ -58,6 +60,20 @@ module AIRefactor
         else
           path
         end
+      end
+
+      def output_template_path
+        options[:output_template_path]
+      end
+
+      def output_file_path_from_template
+        path = output_template_path.gsub("[FILE]", File.basename(input_file))
+          .gsub("[NAME]", File.basename(input_file, ".*"))
+          .gsub("[DIR]", File.dirname(input_file))
+          .gsub("[REFACTOR]", self.class.refactor_name)
+          .gsub("[EXT]", File.extname(input_file))
+        raise "Output template could not be used" unless path.length.positive?
+        path
       end
 
       def prompt_file_path
@@ -86,6 +102,12 @@ module AIRefactor
               long: "--output [FILE]",
               type: String,
               help: "Write output to file instead of stdout. If no path provided will overwrite input file (will prompt to overwrite existing files)"
+            },
+            {
+              key: :output_template_path,
+              long: "--output-template TEMPLATE",
+              type: String,
+              help: "Write outputs to files instead of stdout. The template is used to create the output name, where the it can have substitutions, '[FILE]', '[NAME]', '[DIR]', '[REFACTOR]'. Eg `[DIR]/[NAME]_[REFACTOR][EXT]` (will prompt to overwrite existing files)"
             }
           ]
         end
