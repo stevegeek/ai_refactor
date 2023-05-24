@@ -5,13 +5,19 @@ module AIRefactor
     class Generic < BaseRefactor
       def run
         logger.verbose "Generic refactor to #{input_file}... (using user supplied prompt #{prompt_file_path})"
+        logger.verbose "Write output to #{output_file_path}..." if output_file_path
 
         processor = AIRefactor::FileProcessor.new(
           input_path: input_file,
           prompt_file_path: prompt_file_path,
           ai_client: ai_client,
-          logger: logger
+          logger: logger,
+          output_path: output_file_path
         )
+
+        if processor.output_exists?
+          return false unless can_overwrite_output_file?(output_file_path)
+        end
 
         logger.verbose "Converting #{input_file}..."
 
@@ -38,10 +44,21 @@ module AIRefactor
           return false
         end
 
-        output_content
+        output_file_path ? true : output_content
       end
 
       private
+
+      def output_file_path
+        path = options[:output_file_path]
+        return unless path
+
+        if path == true
+          input_file
+        else
+          path
+        end
+      end
 
       def prompt_file_path
         specified_prompt_path = options[:prompt_file_path]
@@ -60,6 +77,17 @@ module AIRefactor
       class << self
         def prompt_file_path
           raise "Generic refactor requires prompt file to be user specified."
+        end
+
+        def command_line_options
+          [
+            {
+              key: :output_file_path,
+              long: "--output [FILE]",
+              type: String,
+              help: "Write output to file instead of stdout. If no path provided will overwrite input file (will prompt to overwrite existing files)"
+            }
+          ]
         end
       end
     end

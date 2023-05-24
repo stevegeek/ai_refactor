@@ -14,7 +14,6 @@ supported_names = AIRefactor::Refactors.names
 option_parser = OptionParser.new do |parser|
   parser.banner = "Usage: ai_refactor REFACTOR_TYPE INPUT_FILE_OR_DIR [options]\n\nWhere REFACTOR_TYPE is one of: #{supported_names}\n\n"
 
-  # todo: support for a sort of generic process which uses a custom prompt file
   parser.on("-p", "--prompt PROMPT_FILE", String, "Specify path to a text file that contains the ChatGPT 'system' prompt.") do |f|
     options[:prompt_file_path] = f
   end
@@ -27,11 +26,11 @@ option_parser = OptionParser.new do |parser|
     options[:ai_model] = m
   end
 
-  parser.on(nil, "--temperature TEMP", Float, "Specify the temperature parameter for ChatGPT (default 0.7).") do |p|
+  parser.on("--temperature TEMP", Float, "Specify the temperature parameter for ChatGPT (default 0.7).") do |p|
     options[:ai_temperature] = p
   end
 
-  parser.on(nil, "--max-tokens MAX_TOKENS", Integer, "Specify the max number of tokens of output ChatGPT can generate. Max will depend on the size of the prompt (default 1500)") do |m|
+  parser.on("--max-tokens MAX_TOKENS", Integer, "Specify the max number of tokens of output ChatGPT can generate. Max will depend on the size of the prompt (default 1500)") do |m|
     options[:ai_max_tokens] = m
   end
 
@@ -47,17 +46,22 @@ option_parser = OptionParser.new do |parser|
     options[:debug] = true
   end
 
-  supported_refactors.each do |_name, refactorer|
-    refactorer.command_line_options.each do |option|
-      parser.on(option[:short], option[:long], option[:type], option[:help]) do |o|
-        options[option[:key]] = o
-      end
-    end
-  end
-
   parser.on("-h", "--help", "Prints this help") do
     puts parser
     exit
+  end
+
+  parser.separator ""
+
+  supported_refactors.each do |name, refactorer|
+    parser.separator "For refactor type '#{name}':" if refactorer.command_line_options.size.positive?
+    refactorer.command_line_options.each do |option|
+      args = [option[:long], option[:type], option[:help]]
+      args.unshift(option[:short]) if option[:short]
+      parser.on(*args) do |o|
+        options[option[:key]] = o.nil? ? true : o
+      end
+    end
   end
 end
 
