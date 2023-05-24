@@ -7,15 +7,16 @@ module AIRefactor
   class FileProcessor
     attr_reader :file_path, :output_path, :logger
 
-    def initialize(file_path, output_path, prompt_file_path:, ai_client:, logger:)
-      @file_path = file_path
-      @output_path = output_path
+    def initialize(input_path:, prompt_file_path:, ai_client:, logger:, output_path: nil)
+      @file_path = input_path
       @prompt_file_path = prompt_file_path
       @ai_client = ai_client
       @logger = logger
+      @output_path = output_path
     end
 
     def output_exists?
+      return false unless output_path
       File.exist?(output_path)
     end
 
@@ -29,9 +30,13 @@ module AIRefactor
       ]
       content, finished_reason, usage = generate_next_message(messages, prompt, options, options[:ai_max_attempts] || 3)
 
-      if content && content.length > 0
+      content = if content && content.length > 0
         processed = block_given? ? yield(content) : content
-        File.write(output_path, processed)
+        if output_path
+          File.write(output_path, processed)
+          logger.verbose "Wrote output to #{output_path}..."
+        end
+        processed
       end
 
       [content, finished_reason, usage]

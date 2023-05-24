@@ -88,15 +88,28 @@ end.flatten
 logger.info "AI Refactor #{inputs.size} files(s)/dir(s) '#{input_file_path}' with #{refactorer.refactor_name} refactor\n"
 logger.info "====================\n"
 
-inputs.each do |file|
+return_values = inputs.map do |file|
   logger.info "Processing #{file}..."
 
   refactor = refactorer.new(file, options, logger)
-
-  if refactor.run
-    logger.success "Refactor succeeded on #{file}\n"
+  refactor_returned = refactor.run
+  failed = refactor_returned == false
+  if failed
+    logger.warn "Refactor failed on #{file}\nFailed due to: #{refactor.failed_message}\n"
   else
-    logger.warn "Refactor failed on #{file}\n"
+    logger.success "Refactor succeeded on #{file}\n"
+    if refactor_returned.is_a?(String)
+      logger.info "Refactor #{file} output:\n\n#{refactor_returned}\n\n"
+    end
   end
+  failed ? [file, refactor.failed_message] : true
 end
+
+if return_values.all?(true)
+  logger.success "All files processed successfully!"
+else
+  files = return_values.select { |v| v != true }
+  logger.warn "Some files failed to process:\n#{files.map { |f| "#{f[0]} :\n > #{f[1]}" }.join("\n")}"
+end
+
 logger.info "Done processing all files!"

@@ -9,7 +9,10 @@ This is based on the assumption that the LLM AIs are pretty good at identifying 
 
 ## Available refactors
 
-Currently only one is available:
+Currently available:
+
+- `generic`
+- `rspec_to_minitest_rails`
 
 ### `rspec_to_minitest_rails`
 
@@ -39,6 +42,12 @@ Refactor succeeded on spec/models/my_thing_spec.rb
 
 Done processing all files!
 ```
+
+### `generic` (user supplied prompt)
+
+Applies the refactor specified by prompting the AI with the user supplied prompt. You must supply a prompt file with the `-p` option.
+
+The output is written to `stdout`.
 
 ## Installation
 

@@ -2,7 +2,7 @@
 
 module AIRefactor
   module Refactors
-    class MinitestToRspec < Generic
+    class MinitestToRspec < BaseRefactor
       def run
         raise "Not implemented"
       end

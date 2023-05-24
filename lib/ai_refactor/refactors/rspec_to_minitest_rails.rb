@@ -7,7 +7,7 @@ require_relative "tests/test_run_diff_report"
 
 module AIRefactor
   module Refactors
-    class RspecToMinitestRails < Generic
+    class RspecToMinitestRails < BaseRefactor
       def run
         spec_runner = AIRefactor::Tests::RSpecRunner.new(input_file)
         logger.verbose "Run spec #{input_file}... (#{spec_runner.command})"
@@ -17,6 +17,7 @@ module AIRefactor
         if spec_run.failed?
           logger.warn "Skipping #{input_file}..."
           logger.error "Failed to run #{input_file}, exited with status #{spec_run.exitstatus}. Stdout: #{spec_run.stdout}\n\nStderr: #{spec_run.stderr}\n\n"
+          self.failed_message = "Failed to run RSpec file, has errors"
           return false
         end
 
@@ -26,9 +27,9 @@ module AIRefactor
         output_path = input_file.gsub("_spec.rb", "_test.rb").gsub("spec/", "test/")
 
         processor = AIRefactor::FileProcessor.new(
-          input_file,
-          output_path,
-          prompt_file_path: self.class.prompt_file_path,
+          input_path: input_file,
+          output_path: output_path,
+          prompt_file_path: prompt_file_path,
           ai_client: ai_client,
           logger: logger
         )
@@ -38,6 +39,7 @@ module AIRefactor
           answer = $stdin.gets.chomp
           unless answer == "y" || answer == "Y"
             logger.warn "Skipping #{input_file}..."
+            self.failed_message = "Skipped as output test file already exists"
             return false
           end
         end
@@ -51,6 +53,7 @@ module AIRefactor
         rescue => e
           logger.error "Request to OpenAI failed: #{e.message}"
           logger.warn "Skipping #{input_file}..."
+          self.failed_message = "Request to OpenAI failed"
           return false
         end
 
@@ -65,6 +68,7 @@ module AIRefactor
         if !output_content || output_content.length == 0
           logger.warn "Skipping #{input_file}, no translated output..."
           logger.error "Failed to translate #{input_file}, finished reason #{finished_reason}"
+          self.failed_message = "AI conversion failed, no output was generated"
           return false
         end
 
@@ -79,6 +83,7 @@ module AIRefactor
           logger.warn "Skipping #{input_file}..."
           logger.error "Failed to run translated #{output_path}, exited with status #{test_run.exitstatus}. Stdout: #{test_run.stdout}\n\nStderr: #{test_run.stderr}\n\n"
           logger.error "Conversion failed!", bold: true
+          self.failed_message = "Generated test file failed to run correctly"
           return false
         end
 
@@ -95,6 +100,7 @@ module AIRefactor
           logger.warn report.diff.colorize(:yellow)
           logger.verbose "Done converting #{input_file} to #{output_path}..."
           logger.error "Differences found! Conversion failed!", bold: true
+          self.failed_message = "Generated test file run output did not match original RSpec spec run output"
           false
         end
       end
