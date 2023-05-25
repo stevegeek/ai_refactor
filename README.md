@@ -11,8 +11,9 @@ This is based on the assumption that the LLM AIs are pretty good at identifying 
 
 Currently available:
 
-- `generic`
-- `rspec_to_minitest_rails`
+- `rspec_to_minitest_rails`: convert RSpec specs to minitest tests in Rails apps
+- `generic`: provide your own prompt for the AI and run against the input files
+
 
 ### `rspec_to_minitest_rails`
 
@@ -47,7 +48,20 @@ Done processing all files!
 
 Applies the refactor specified by prompting the AI with the user supplied prompt. You must supply a prompt file with the `-p` option.
 
-The output is written to `stdout`.
+The output is written to `stdout`, or to a file with the `--output` option. If `--output` is used without a value it overwrites the input.
+
+You can also output to a file using a template, `--output-template` to determine the output file name given a template string:
+
+The template is used to create the output name, where the it can have substitutions, '[FILE]', '[NAME]', '[DIR]', '[REFACTOR]' & '[EXT]'.
+
+Eg `--output-template "[DIR]/[NAME]_[REFACTOR][EXT]"`
+
+eg for the input `my_dir/my_class.rb`
+- `[FILE]`: `my_class.rb`
+- `[NAME]`: `my_class`
+- `[DIR]`: `my_dir`
+- `[REFACTOR]`: `generic`
+- `[EXT]`: `.rb`
 
 ## Installation
 
@@ -66,7 +80,7 @@ See `ai_refactor --help` for more information.
 ```
 Usage: ai_refactor REFACTOR_TYPE INPUT_FILE_OR_DIR [options]
 
-Where REFACTOR_TYPE is one of: ["generic", "rspec_to_minitest_rails", "minitest_to_rspec"]
+Where REFACTOR_TYPE is one of: ["rspec_to_minitest_rails", "generic"]
 
     -p, --prompt PROMPT_FILE         Specify path to a text file that contains the ChatGPT 'system' prompt.
     -c, --continue [MAX_MESSAGES]    If ChatGPT stops generating due to the maximum token count being reached, continue to generate more messages, until a stop condition or MAX_MESSAGES. MAX_MESSAGES defaults to 3
@@ -77,6 +91,10 @@ Where REFACTOR_TYPE is one of: ["generic", "rspec_to_minitest_rails", "minitest_
     -v, --verbose                    Show extra output and progress info
     -d, --debug                      Show debugging output to help diagnose issues
     -h, --help                       Prints this help
+
+For refactor type 'generic':
+        --output [FILE]              Write output to file instead of stdout. If no path provided will overwrite input file (will prompt to overwrite existing files)
+        --output-template TEMPLATE   Write outputs to files instead of stdout. The template is used to create the output name, where the it can have substitutions, '[FILE]', '[NAME]', '[DIR]', '[REFACTOR]' & '[EXT]'. Eg `[DIR]/[NAME]_[REFACTOR][EXT]` (will prompt to overwrite existing files)
 ```
 
 
