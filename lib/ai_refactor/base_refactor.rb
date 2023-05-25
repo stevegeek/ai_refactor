@@ -56,7 +56,7 @@ module AIRefactor
       end
 
       def prompt_file_path
-        file = if options[:prompt_file_path]&.length&.positive?
+        file = if options && options[:prompt_file_path]&.length&.positive?
           options[:prompt_file_path]
         else
           File.join(File.dirname(File.expand_path(__FILE__)), "prompts", "#{refactor_name}.md")
