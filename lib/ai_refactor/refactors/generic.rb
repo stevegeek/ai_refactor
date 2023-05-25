@@ -91,10 +91,6 @@ module AIRefactor
       end
 
       class << self
-        def prompt_file_path
-          raise "Generic refactor requires prompt file to be user specified."
-        end
-
         def command_line_options
           [
             {

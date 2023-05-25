@@ -33,7 +33,14 @@ module AIRefactor
     end
 
     def prompt_file_path
-      self.class.prompt_file_path
+      file = if options && options[:prompt_file_path]&.length&.positive?
+        options[:prompt_file_path]
+      else
+        File.join(File.dirname(File.expand_path(__FILE__)), "refactors", "prompts", "#{refactor_name}.md")
+      end
+      file.tap do |prompt|
+        raise "No prompt file '#{prompt}' found for #{refactor_name}" unless File.exist?(prompt)
+      end
     end
 
     def ai_client
@@ -53,17 +60,6 @@ module AIRefactor
           .gsub(/([a-z\d])([A-Z])/, '\1_\2')
           .tr("-", "_")
           .downcase
-      end
-
-      def prompt_file_path
-        file = if options && options[:prompt_file_path]&.length&.positive?
-          options[:prompt_file_path]
-        else
-          File.join(File.dirname(File.expand_path(__FILE__)), "prompts", "#{refactor_name}.md")
-        end
-        file.tap do |prompt|
-          raise "No prompt file '#{prompt}' found for #{refactor_name}" unless File.exist?(prompt)
-        end
       end
     end
   end
