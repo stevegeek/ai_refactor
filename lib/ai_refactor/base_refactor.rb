@@ -47,6 +47,10 @@ module AIRefactor
       @ai_client ||= OpenAI::Client.new
     end
 
+    def refactor_name
+      self.class.refactor_name
+    end
+
     class << self
       def command_line_options
         []
