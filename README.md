@@ -7,6 +7,12 @@ the AI can help identify which code to change and apply the relevant refactor.
 
 This is based on the assumption that the LLM AIs are pretty good at identifying patterns.
 
+## Note on performance and ChatGPT version
+
+_The quality of results depend very much on the version of ChatGPT being used._
+
+I have tested with both 3.5 and 4 and see **significantly** better performance with version 4.
+
 ## Available refactors
 
 Currently available:
