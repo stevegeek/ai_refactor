@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module AIRefactor
-  module Tests
+  module TestRunners
     class TestRunDiffReport
       def initialize(previous_test_run_result, test_run_result)
         @current = test_run_result

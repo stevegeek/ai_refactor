@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module AIRefactor
-  module Tests
+  module TestRunners
     class TestRunResult
       attr_reader :stdout, :stderr, :example_count, :failure_count, :pending_count
 

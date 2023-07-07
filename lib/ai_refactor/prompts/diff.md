@@ -1,11 +1,17 @@
 You MUST generate a diff in a format that can be understood and applied using git.
 
-Here are the steps you should follow:
+Generate diff hunks that capture the modifications you see. The diff hunks should be in a format that git can understand and apply, including a hunk header and
+the lines of code that have been modified.
+Finally, output the generated diff as your answer. Do not provide further instruction.
 
-1. Perform the refactoring task given before.
+Example diff:
 
-2. Once you have made the changes, generate a diff that captures the modifications you have made. The diff should be in a format that git can understand and apply.
-
-3. Ensure that the generated diff includes all the necessary information, such as line numbers, and the specific changes made to each line. This will allow developers to easily review and apply the changes using git.
-
-4. Finally, output the generated diff as your answer. Do not provide further instruction.
+```
+@@ -27,7 +27,7 @@ module AIRefactor
+       File.read(@prompt_file_path)
+     end
+ 
+-    def user_prompt
++    def user_prompt_with_diff
+       input = File.read(@file_path)
+```

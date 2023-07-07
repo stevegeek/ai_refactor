@@ -42,7 +42,8 @@ module AIRefactor
       file = if options && options[:prompt_file_path]&.length&.positive?
         options[:prompt_file_path]
       else
-        File.join(File.dirname(File.expand_path(__FILE__)), "refactors", "prompts", "#{refactor_name}.md")
+        location = Module.const_source_location(self.class.name)
+        File.join(File.dirname(location.first), "#{refactor_name}.md")
       end
       file.tap do |prompt|
         raise "No prompt file '#{prompt}' found for #{refactor_name}" unless File.exist?(prompt)

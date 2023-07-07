@@ -22,7 +22,7 @@ module AIRefactor
 
     def process!
       logger.debug("Processing #{@prompt.file_path} with prompt in #{@prompt.prompt_file_path}")
-      messages = @prompt.chat_prompt
+      messages = @prompt.chat_messages
       if options[:review_prompt]
         logger.info "Review prompt:\n"
         messages.each do |message|
@@ -32,6 +32,7 @@ module AIRefactor
         end
         return [nil, "Skipped as review prompt was requested", nil]
       end
+
       content, finished_reason, usage = generate_next_message(messages, options, options[:ai_max_attempts] || 3)
 
       content = if content && content.length > 0

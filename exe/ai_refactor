@@ -22,7 +22,7 @@ option_parser = OptionParser.new do |parser|
     options[:prompt_file_path] = f
   end
 
-  parser.on("-f", "--diff", "Request AI generate diffs of changes rather than writing out the whole file.") do
+  parser.on("-f", "--diffs", "Request AI generate diffs of changes rather than writing out the whole file.") do
     options[:diff] = true
   end
 

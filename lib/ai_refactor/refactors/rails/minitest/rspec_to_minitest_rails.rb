@@ -1,15 +1,10 @@
 # frozen_string_literal: true
 
-require_relative "tests/test_run_result"
-require_relative "tests/rspec_runner"
-require_relative "tests/minitest_runner"
-require_relative "tests/test_run_diff_report"
-
 module AIRefactor
   module Refactors
     class RspecToMinitestRails < BaseRefactor
       def run
-        spec_runner = AIRefactor::Tests::RSpecRunner.new(input_file)
+        spec_runner = AIRefactor::TestRunners::RSpecRunner.new(input_file)
         logger.verbose "Run spec #{input_file}... (#{spec_runner.command})"
 
         spec_run = spec_runner.run
@@ -68,7 +63,7 @@ module AIRefactor
 
         logger.verbose "Converted #{input_file} to #{output_path}..."
 
-        minitest_runner = AIRefactor::Tests::MinitestRunner.new(processor.output_path)
+        minitest_runner = AIRefactor::TestRunners::MinitestRunner.new(processor.output_path)
 
         logger.verbose "Run generated test file #{output_path} (#{minitest_runner.command})..."
         test_run = minitest_runner.run
@@ -84,7 +79,7 @@ module AIRefactor
         logger.debug "Translated test file results:"
         logger.debug ">> Runs: #{test_run.example_count}, Failures: #{test_run.failure_count}, Skips: #{test_run.pending_count}"
 
-        report = AIRefactor::Tests::TestRunDiffReport.new(spec_run, test_run)
+        report = AIRefactor::TestRunners::TestRunDiffReport.new(spec_run, test_run)
 
         if report.no_differences?
           logger.verbose "Done converting #{input_file} to #{output_path}..."

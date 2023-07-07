@@ -3,7 +3,7 @@
 require "open3"
 
 module AIRefactor
-  module Tests
+  module TestRunners
     class RSpecRunner
       def initialize(file_path, command_template: "bundle exec rspec __FILE__")
         @file_path = file_path
