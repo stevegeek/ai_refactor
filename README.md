@@ -7,21 +7,14 @@ the AI can help identify which code to change and apply the relevant refactor.
 
 This is based on the assumption that the LLM AIs are pretty good at identifying patterns.
 
-## Note on performance and ChatGPT version
-
-_The quality of results depend very much on the version of ChatGPT being used._
-
-I have tested with both 3.5 and 4 and see **significantly** better performance with version 4.
-
 ## Available refactors
 
 Currently available:
 
-- `rspec_to_minitest_rails`: convert RSpec specs to minitest tests in Rails apps
+- `rails/minitest/rspec_to_minitest`: convert RSpec specs to minitest tests in Rails apps
 - `generic`: provide your own prompt for the AI and run against the input files
 
-
-### `rspec_to_minitest_rails`
+### `rails/minitest/rspec_to_minitest`
 
 Converts RSpec tests to minitest tests for Rails test suites (ie generated minitest tests are actually `ActiveSupport::TestCase`s).
 
@@ -30,8 +23,8 @@ The tool first runs the original RSpec spec file and then runs the generated min
 The comparison is simply the count of successful and failed tests but this is probably enough to determine if the conversion worked.
 
 ```shellq
-stephen$ OPENAI_API_KEY=my-key ai_refactor rspec_to_minitest_rails spec/models/my_thing_spec.rb -v
-AI Refactor 1 files(s)/dir(s) '["spec/models/my_thing_spec.rb"]' with rspec_to_minitest_rails refactor
+stephen$ OPENAI_API_KEY=my-key ai_refactor rails/minitest/rspec_to_minitest spec/models/my_thing_spec.rb -v
+AI Refactor 1 files(s)/dir(s) '["spec/models/my_thing_spec.rb"]' with rails/minitest/rspec_to_minitest refactor
 ====================
 Processing spec/models/my_thing_spec.rb...
 [Run spec spec/models/my_thing_spec.rb... (bundle exec rspec spec/models/my_thing_spec.rb)]
@@ -86,7 +79,7 @@ See `ai_refactor --help` for more information.
 ```
 Usage: ai_refactor REFACTOR_TYPE INPUT_FILE_OR_DIR [options]
 
-Where REFACTOR_TYPE is one of: ["rspec_to_minitest_rails", "generic"]
+Where REFACTOR_TYPE is one of: ["generic" ... (run ai_refactor --help for full list of refactor types)]
 
     -p, --prompt PROMPT_FILE         Specify path to a text file that contains the ChatGPT 'system' prompt.
     -c, --continue [MAX_MESSAGES]    If ChatGPT stops generating due to the maximum token count being reached, continue to generate more messages, until a stop condition or MAX_MESSAGES. MAX_MESSAGES defaults to 3
@@ -103,6 +96,11 @@ For refactor type 'generic':
         --output-template TEMPLATE   Write outputs to files instead of stdout. The template is used to create the output name, where the it can have substitutions, '[FILE]', '[NAME]', '[DIR]', '[REFACTOR]' & '[EXT]'. Eg `[DIR]/[NAME]_[REFACTOR][EXT]` (will prompt to overwrite existing files)
 ```
 
+## Note on performance and ChatGPT version
+
+_The quality of results depend very much on the version of ChatGPT being used._
+
+I have tested with both 3.5 and 4 and see **significantly** better performance with version 4.
 
 ## Development
 

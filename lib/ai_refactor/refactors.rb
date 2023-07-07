@@ -2,6 +2,11 @@
 
 module AIRefactor
   module Refactors
+    def register(klass)
+      all[klass.refactor_name] = klass
+    end
+    module_function :register
+
     def get(name)
       all[name]
     end
@@ -12,16 +17,14 @@ module AIRefactor
     end
     module_function :names
 
-    def all
-      @all ||= constants.map { |n| const_get(n) }.select { |c| c.is_a? Class }.each_with_object({}) do |klass, hash|
-        hash[klass.refactor_name] = klass
-      end
-    end
-    module_function :all
-
     def supported?(name)
       names.include?(name)
     end
     module_function :supported?
+
+    def all
+      @all ||= {}
+    end
+    module_function :all
   end
 end
