@@ -90,7 +90,7 @@ Where REFACTOR_TYPE is one of: ["rspec_to_minitest_rails", "generic"]
 
     -p, --prompt PROMPT_FILE         Specify path to a text file that contains the ChatGPT 'system' prompt.
     -c, --continue [MAX_MESSAGES]    If ChatGPT stops generating due to the maximum token count being reached, continue to generate more messages, until a stop condition or MAX_MESSAGES. MAX_MESSAGES defaults to 3
-    -m, --model MODEL_NAME           Specify a ChatGPT model to use (default gpt-3.5-turbo).
+    -m, --model MODEL_NAME           Specify a ChatGPT model to use (default gpt-4).
         --temperature TEMP           Specify the temperature parameter for ChatGPT (default 0.7).
         --max-tokens MAX_TOKENS      Specify the max number of tokens of output ChatGPT can generate. Max will depend on the size of the prompt (default 1500)
     -t, --timeout SECONDS            Specify the max wait time for ChatGPT response.

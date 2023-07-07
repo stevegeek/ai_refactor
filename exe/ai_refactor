@@ -22,7 +22,7 @@ option_parser = OptionParser.new do |parser|
     options[:ai_max_attempts] = c || 3
   end
 
-  parser.on("-m", "--model MODEL_NAME", String, "Specify a ChatGPT model to use (default gpt-3.5-turbo).") do |m|
+  parser.on("-m", "--model MODEL_NAME", String, "Specify a ChatGPT model to use (default gpt-4).") do |m|
     options[:ai_model] = m
   end
 
