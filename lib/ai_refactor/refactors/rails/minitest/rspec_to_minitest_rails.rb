@@ -27,11 +27,11 @@ module AIRefactor
         output_path = input_file.gsub("_spec.rb", "_test.rb").gsub("spec/", "test/")
 
         processor = AIRefactor::FileProcessor.new(
-          input_path: input_file,
+          prompt: ::AIRefactor::Prompt.new(input_path: input_file, prompt_file_path: prompt_file_path, diff: options[:diff]),
           output_path: output_path,
-          prompt_file_path: prompt_file_path,
           ai_client: ai_client,
-          logger: logger
+          logger: logger,
+          options: options
         )
 
         if processor.output_exists?
@@ -41,7 +41,7 @@ module AIRefactor
         logger.verbose "Converting #{input_file}..."
 
         begin
-          output_content, finished_reason, usage = processor.process!(options) do |content|
+          output_content, finished_reason, usage = processor.process! do |content|
             content.gsub("```", "")
           end
         rescue => e

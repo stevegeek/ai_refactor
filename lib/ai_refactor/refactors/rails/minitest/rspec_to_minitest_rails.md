@@ -265,3 +265,5 @@ refute assoc.nil?, "no association :message_thread"
 assert_equal :belongs_to, assoc.macro
 assert assoc.options[:optional]
 ```
+
+Convert:
