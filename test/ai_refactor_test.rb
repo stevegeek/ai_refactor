@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class TestAIRefactor < Minitest::Test
+class AIRefactorTest < Minitest::Test
   def test_that_it_has_a_version_number
     refute_nil ::AIRefactor::VERSION
   end

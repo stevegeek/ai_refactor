@@ -3,6 +3,7 @@
 require_relative "ai_refactor/version"
 
 require_relative "ai_refactor/logger"
+require_relative "ai_refactor/prompt"
 require_relative "ai_refactor/file_processor"
 
 require_relative "ai_refactor/refactors"

@@ -5,14 +5,14 @@ require "json"
 
 module AIRefactor
   class FileProcessor
-    attr_reader :file_path, :output_path, :logger
+    attr_reader :file_path, :output_path, :logger, :options
 
-    def initialize(input_path:, prompt_file_path:, ai_client:, logger:, output_path: nil)
-      @file_path = input_path
-      @prompt_file_path = prompt_file_path
+    def initialize(prompt:, ai_client:, logger:, output_path: nil, options: {})
+      @prompt = prompt
       @ai_client = ai_client
       @logger = logger
       @output_path = output_path
+      @options = options
     end
 
     def output_exists?
@@ -20,15 +20,19 @@ module AIRefactor
       File.exist?(output_path)
     end
 
-    def process!(options)
-      logger.debug("Processing #{file_path} with prompt in #{@prompt_file_path}")
-      prompt = File.read(@prompt_file_path)
-      input = File.read(@file_path)
-      messages = [
-        {role: "system", content: prompt},
-        {role: "user", content: "Convert: ```#{input}```"}
-      ]
-      content, finished_reason, usage = generate_next_message(messages, prompt, options, options[:ai_max_attempts] || 3)
+    def process!
+      logger.debug("Processing #{@prompt.file_path} with prompt in #{@prompt.prompt_file_path}")
+      messages = @prompt.chat_prompt
+      if options[:review_prompt]
+        logger.info "Review prompt:\n"
+        messages.each do |message|
+          logger.info "\n-- Start of prompt for Role #{message[:role]} --\n"
+          logger.info message[:content]
+          logger.info "\n-- End of prompt for Role #{message[:role]} --\n"
+        end
+        return [nil, "Skipped as review prompt was requested", nil]
+      end
+      content, finished_reason, usage = generate_next_message(messages, options, options[:ai_max_attempts] || 3)
 
       content = if content && content.length > 0
         processed = block_given? ? yield(content) : content
@@ -44,7 +48,7 @@ module AIRefactor
 
     private
 
-    def generate_next_message(messages, prompt, options, attempts_left)
+    def generate_next_message(messages, options, attempts_left)
       logger.verbose "Generate AI output. Generation attempts left: #{attempts_left}"
       logger.debug "Options: #{options.inspect}"
       logger.debug "Messages: #{messages.inspect}"
@@ -69,7 +73,7 @@ module AIRefactor
         generate_next_message(messages + [
           {role: "assistant", content: content},
           {role: "user", content: "Continue"}
-        ], prompt, options, attempts_left - 1)
+        ], options, attempts_left - 1)
       else
         previous_messages = messages.filter { |m| m[:role] == "assistant" }.map { |m| m[:content] }.join
         content = if previous_messages.length > 0

@@ -14,6 +14,10 @@ supported_names = AIRefactor::Refactors.names
 option_parser = OptionParser.new do |parser|
   parser.banner = "Usage: ai_refactor REFACTOR_TYPE INPUT_FILE_OR_DIR [options]\n\nWhere REFACTOR_TYPE is one of: #{supported_names}\n\n"
 
+  parser.on("-r", "--review-prompt", "Show the prompt that will be sent to ChatGPT but do not actually call ChatGPT or make changes to files.") do
+    options[:review_prompt] = true
+  end
+
   parser.on("-p", "--prompt PROMPT_FILE", String, "Specify path to a text file that contains the ChatGPT 'system' prompt.") do |f|
     options[:prompt_file_path] = f
   end
