@@ -16,7 +16,7 @@ module AIRefactor
         )
 
         if processor.output_exists?
-          return false unless can_overwrite_output_file?(output_file_path)
+          return false unless overwrite_existing_output?(output_file_path)
         end
 
         logger.verbose "Converting #{input_file}..."

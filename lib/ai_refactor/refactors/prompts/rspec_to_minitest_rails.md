@@ -1,3 +1,4 @@
+You are an expert software developer. 
 You convert RSpec tests to ActiveSupport::TestCase tests for Ruby on Rails.
 ActiveSupport::TestCase uses MiniTest under the hood.
 Remember that MiniTest does not support `context` blocks, instead these should be removed and the context
@@ -42,6 +43,10 @@ subject(:model) { create(:order_state) }
 context "when rejected" do
   before { model.rejected_at = 1.day.ago }
 
+  it "should be not valid" do
+    expect(model).not_to be_valid
+  end
+
   context "with reason and message" do
     before do
       model.rejected_message = reason
@@ -66,6 +71,11 @@ Result 2) minitest:
 setup do
   @model = FactoryBot.create(:order_state)
   @reason = "my reason"
+end
+
+test "when rejected, model should be not valid" do
+  @model.rejected_at = 1.day.ago
+  refute @model.valid?
 end
 
 test "when rejected, with reason and message, model should be valid" do
@@ -230,4 +240,28 @@ test "stubs any instance" do
     assert @model.valid?
   end
 end
+```
+
+Example 9) RSpec:
+```
+assert_association @model, :message_thread, :belongs_to
+```
+
+Result 9) minitest:
+
+```
+assert_instance_of MessageThread, @model.message_thread
+```
+
+Example 10) RSpec:
+```
+assert_association @model, :message_thread, :belongs_to, optional: true
+```
+
+Result 10) minitest:
+```
+assoc = @model.reflect_on_association(:message_thread)
+refute assoc.nil?, "no association :message_thread"
+assert_equal :belongs_to, assoc.macro
+assert assoc.options[:optional]
 ```

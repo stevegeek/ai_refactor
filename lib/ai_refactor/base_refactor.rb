@@ -21,7 +21,7 @@ module AIRefactor
 
     private
 
-    def can_overwrite_output_file?(output_path)
+    def overwrite_existing_output?(output_path)
       logger.info "Do you wish to overwrite #{output_path}? (y/n)"
       answer = $stdin.gets.chomp
       unless answer == "y" || answer == "Y"
