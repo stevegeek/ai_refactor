@@ -22,14 +22,20 @@ module AIRefactor
     private
 
     def overwrite_existing_output?(output_path)
-      logger.info "Do you wish to overwrite #{output_path}? (y/n)"
-      answer = $stdin.gets.chomp
-      unless answer == "y" || answer == "Y"
-        logger.warn "Skipping #{input_file}..."
-        self.failed_message = "Skipped as output file already exists"
-        return false
+      overwrite = options && options[:overwrite]&.downcase
+      answer = if ["y", "n"].include? overwrite
+        overwrite
+      else
+        logger.info "Do you wish to overwrite #{output_path}? (y/n)"
+        $stdin.gets.chomp.downcase
       end
-      true
+      if answer == "y"
+        logger.verbose "Overwriting #{output_path}..."
+        return true
+      end
+      logger.warn "Skipping #{input_file}..."
+      self.failed_message = "Skipped as output file already exists"
+      false
     end
 
     def prompt_file_path

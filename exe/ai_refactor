@@ -38,6 +38,10 @@ option_parser = OptionParser.new do |parser|
     options[:ai_timeout] = m
   end
 
+  parser.on("--overwrite", "Always overwrite existing output files, 'y' for yes, 'n' for no, or 'a' for ask. Default to ask.") do
+    options[:overwrite] = true
+  end
+
   parser.on("-v", "--verbose", "Show extra output and progress info") do
     options[:verbose] = true
   end
