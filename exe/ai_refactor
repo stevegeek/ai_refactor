@@ -22,6 +22,10 @@ option_parser = OptionParser.new do |parser|
     options[:prompt_file_path] = f
   end
 
+  parser.on("-f", "--diff", "Request AI generate diffs of changes rather than writing out the whole file.") do
+    options[:diff] = true
+  end
+
   parser.on("-c", "--continue [MAX_MESSAGES]", Integer, "If ChatGPT stops generating due to the maximum token count being reached, continue to generate more messages, until a stop condition or MAX_MESSAGES. MAX_MESSAGES defaults to 3") do |c|
     options[:ai_max_attempts] = c || 3
   end
