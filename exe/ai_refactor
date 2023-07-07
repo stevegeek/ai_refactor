@@ -14,6 +14,10 @@ supported_names = AIRefactor::Refactors.names
 option_parser = OptionParser.new do |parser|
   parser.banner = "Usage: ai_refactor REFACTOR_TYPE INPUT_FILE_OR_DIR [options]\n\nWhere REFACTOR_TYPE is one of: #{supported_names}\n\n"
 
+  parser.on("-c", "--context CONTEXT_FILES", Array, "Specify one or more files to use as context for the AI. The contents of these files will be prepended to the prompt sent to the AI.") do |c|
+    options[:context_file_paths] = c
+  end
+
   parser.on("-r", "--review-prompt", "Show the prompt that will be sent to ChatGPT but do not actually call ChatGPT or make changes to files.") do
     options[:review_prompt] = true
   end
@@ -26,7 +30,7 @@ option_parser = OptionParser.new do |parser|
     options[:diff] = true
   end
 
-  parser.on("-c", "--continue [MAX_MESSAGES]", Integer, "If ChatGPT stops generating due to the maximum token count being reached, continue to generate more messages, until a stop condition or MAX_MESSAGES. MAX_MESSAGES defaults to 3") do |c|
+  parser.on("-C", "--continue [MAX_MESSAGES]", Integer, "If ChatGPT stops generating due to the maximum token count being reached, continue to generate more messages, until a stop condition or MAX_MESSAGES. MAX_MESSAGES defaults to 3") do |c|
     options[:ai_max_attempts] = c || 3
   end
 

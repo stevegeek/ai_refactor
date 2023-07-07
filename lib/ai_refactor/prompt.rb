@@ -4,16 +4,19 @@ module AIRefactor
   class Prompt
     HEADER_MARKER = "__{{prompt_header}}__"
     FOOTER_MARKER = "__{{prompt_footer}}__"
+    CONTEXT_MARKER = "__{{context}}__"
     CONTENT_MARKER = "__{{content}}__"
 
     attr_reader :file_path, :prompt_file_path
 
-    def initialize(input_path:, prompt_file_path:, prompt_header: nil, prompt_footer: nil, diff: false)
+    def initialize(input_path:, prompt_file_path:, options:, logger:, context: nil, prompt_header: nil, prompt_footer: nil)
       @file_path = input_path
       @prompt_file_path = prompt_file_path
+      @logger = logger
       @header = prompt_header
       @footer = prompt_footer
-      @diff = diff
+      @diff = options[:diff]
+      @context = context
     end
 
     def chat_messages
@@ -27,6 +30,7 @@ module AIRefactor
 
     def system_prompt
       prompt = expand_prompt(system_prompt_template, HEADER_MARKER, @header || "")
+      prompt = expand_prompt(prompt, CONTEXT_MARKER, @context&.prepare_context || "")
       expand_prompt(prompt, FOOTER_MARKER, system_prompt_footer)
     end
 

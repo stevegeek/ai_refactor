@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "fileutils"
 require "openai"
 require "json"
 
@@ -38,7 +39,7 @@ module AIRefactor
       content = if content && content.length > 0
         processed = block_given? ? yield(content) : content
         if output_path
-          File.write(output_path, processed)
+          write_output(output_path, processed)
           logger.verbose "Wrote output to #{output_path}..."
         end
         processed
@@ -84,6 +85,12 @@ module AIRefactor
         end
         [content, finished_reason, response["usage"]]
       end
+    end
+
+    def write_output(output_path, processed)
+      dir = File.dirname(output_path)
+      FileUtils.mkdir_p(dir) unless File.directory?(dir)
+      File.write(output_path, processed)
     end
   end
 end

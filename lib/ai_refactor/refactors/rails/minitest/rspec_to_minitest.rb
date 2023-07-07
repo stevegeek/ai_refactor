@@ -23,13 +23,9 @@ module AIRefactor
 
             output_path = input_file.gsub("_spec.rb", "_test.rb").gsub("spec/", "test/")
 
-            processor = AIRefactor::FileProcessor.new(
-              prompt: ::AIRefactor::Prompt.new(input_path: input_file, prompt_file_path: prompt_file_path, diff: options[:diff]),
-              output_path: output_path,
-              ai_client: ai_client,
-              logger: logger,
-              options: options
-            )
+            context = ::AIRefactor::Context.new(files: options[:context_file_paths], logger: logger)
+            prompt = ::AIRefactor::Prompt.new(input_path: input_file, prompt_file_path: prompt_file_path, context: context, logger: logger, options: options)
+            processor = AIRefactor::FileProcessor.new(prompt: prompt, ai_client: ai_client, logger: logger, output_path: output_path, options: options)
 
             if processor.output_exists?
               return false unless overwrite_existing_output?(output_path)
