@@ -17,3 +17,8 @@ require_relative "ai_refactor/refactors/base_refactor"
 require_relative "ai_refactor/refactors/generic"
 require_relative "ai_refactor/refactors/rails/minitest/rspec_to_minitest"
 # require_relative "ai_refactor/refactors/minitest_to_rspec"
+
+module AIRefactor
+  class NoOutputError < StandardError; end
+  # Your code goes here...
+end

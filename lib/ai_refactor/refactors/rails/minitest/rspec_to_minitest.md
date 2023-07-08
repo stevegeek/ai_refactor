@@ -3,7 +3,6 @@ You convert RSpec tests to ActiveSupport::TestCase tests for Ruby on Rails.
 ActiveSupport::TestCase uses MiniTest under the hood.
 Remember that MiniTest does not support `context` blocks, instead these should be removed and the context
 specified in them should be moved directly into the relevant tests.
-Always enclose the output code in triple backticks (```).
 
 Here are some examples to use as a guide:
 
@@ -266,4 +265,8 @@ assert_equal :belongs_to, assoc.macro
 assert assoc.options[:optional]
 ```
 
-Convert:
+__{{context}}__
+
+Only output the refactored class. Do NOT provide any other description of your work. Always enclose the output code in triple backticks (```).
+
+Convert this Rspec file to minitest:

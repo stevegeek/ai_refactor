@@ -23,6 +23,7 @@ module AIRefactor
 
     def process!
       logger.debug("Processing #{@prompt.file_path} with prompt in #{@prompt.prompt_file_path}")
+      logger.debug("Options: #{options.inspect}")
       messages = @prompt.chat_messages
       if options[:review_prompt]
         logger.info "Review prompt:\n"
@@ -34,7 +35,7 @@ module AIRefactor
         return [nil, "Skipped as review prompt was requested", nil]
       end
 
-      content, finished_reason, usage = generate_next_message(messages, options, options[:ai_max_attempts] || 3)
+      content, finished_reason, usage = generate_next_message(messages, options, ai_max_attempts)
 
       content = if content && content.length > 0
         processed = block_given? ? yield(content) : content
@@ -49,6 +50,10 @@ module AIRefactor
     end
 
     private
+
+    def ai_max_attempts
+      options[:ai_max_attempts] || 1
+    end
 
     def generate_next_message(messages, options, attempts_left)
       logger.verbose "Generate AI output. Generation attempts left: #{attempts_left}"

@@ -21,54 +21,27 @@ module AIRefactor
             logger.debug "Original test run results:"
             logger.debug ">> Examples: #{spec_run.example_count}, Failures: #{spec_run.failure_count}, Pendings: #{spec_run.pending_count}"
 
-            output_path = input_file.gsub("_spec.rb", "_test.rb").gsub("spec/", "test/")
-
-            context = ::AIRefactor::Context.new(files: options[:context_file_paths], logger: logger)
-            prompt = ::AIRefactor::Prompt.new(input_path: input_file, prompt_file_path: prompt_file_path, context: context, logger: logger, options: options)
-            processor = AIRefactor::FileProcessor.new(prompt: prompt, ai_client: ai_client, logger: logger, output_path: output_path, options: options)
-
-            if processor.output_exists?
-              return false unless overwrite_existing_output?(output_path)
-            end
-
-            logger.verbose "Converting #{input_file}..."
-
             begin
-              output_content, finished_reason, usage = processor.process! do |content|
-                content.gsub("```", "")
+              result = process! do |content|
+                content.gsub("```ruby", "").gsub("```", "")
               end
+            rescue AIRefactor::NoOutputError => _e
+              return false
             rescue => e
-              logger.error "Request to OpenAI failed: #{e.message}"
-              logger.warn "Skipping #{input_file}..."
-              self.failed_message = "Request to OpenAI failed"
+              logger.error "Failed to convert #{input_file} to Minitest, error: #{e.message}"
               return false
             end
 
-            logger.verbose "OpenAI finished, with reason '#{finished_reason}'..."
-            logger.verbose "Used tokens: #{usage["total_tokens"]}".colorize(:light_black) if usage
+            logger.verbose "Converted #{input_file} to #{output_file_path}..." if result
 
-            if finished_reason == "length"
-              logger.warn "Translation may contain an incomplete output as the max token length was reached. You can try using the '--continue' option next time to increase the length of generated output."
-              logger.warn "Continuing to test the translated file... but it is likely to fail."
-            end
+            minitest_runner = AIRefactor::TestRunners::MinitestRunner.new(output_file_path)
 
-            if !output_content || output_content.length == 0
-              logger.warn "Skipping #{input_file}, no translated output..."
-              logger.error "Failed to translate #{input_file}, finished reason #{finished_reason}"
-              self.failed_message = "AI conversion failed, no output was generated"
-              return false
-            end
-
-            logger.verbose "Converted #{input_file} to #{output_path}..."
-
-            minitest_runner = AIRefactor::TestRunners::MinitestRunner.new(processor.output_path)
-
-            logger.verbose "Run generated test file #{output_path} (#{minitest_runner.command})..."
+            logger.verbose "Run generated test file #{output_file_path} (#{minitest_runner.command})..."
             test_run = minitest_runner.run
 
             if test_run.failed?
               logger.warn "Skipping #{input_file}..."
-              logger.error "Failed to run translated #{output_path}, exited with status #{test_run.exitstatus}. Stdout: #{test_run.stdout}\n\nStderr: #{test_run.stderr}\n\n"
+              logger.error "Failed to run translated #{output_file_path}, exited with status #{test_run.exitstatus}. Stdout: #{test_run.stdout}\n\nStderr: #{test_run.stderr}\n\n"
               logger.error "Conversion failed!", bold: true
               self.failed_message = "Generated test file failed to run correctly"
               return false
@@ -80,16 +53,20 @@ module AIRefactor
             report = AIRefactor::TestRunners::TestRunDiffReport.new(spec_run, test_run)
 
             if report.no_differences?
-              logger.verbose "Done converting #{input_file} to #{output_path}..."
+              logger.verbose "Done converting #{input_file} to #{output_file_path}..."
               logger.success "No differences found! Conversion worked!"
               true
             else
               logger.warn report.diff.colorize(:yellow)
-              logger.verbose "Done converting #{input_file} to #{output_path}..."
+              logger.verbose "Done converting #{input_file} to #{output_file_path}..."
               logger.error "Differences found! Conversion failed!", bold: true
               self.failed_message = "Generated test file run output did not match original RSpec spec run output"
               false
             end
+          end
+
+          def default_output_path
+            input_file.gsub("_spec.rb", "_test.rb").gsub("spec/", "test/")
           end
         end
       end

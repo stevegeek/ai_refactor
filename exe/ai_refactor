@@ -14,6 +14,14 @@ supported_names = AIRefactor::Refactors.names
 option_parser = OptionParser.new do |parser|
   parser.banner = "Usage: ai_refactor REFACTOR_TYPE INPUT_FILE_OR_DIR [options]\n\nWhere REFACTOR_TYPE is one of: #{supported_names}\n\n"
 
+  parser.on("-o", "--output [FILE]", String, "Write output to given file instead of stdout. If no path provided will overwrite input file (will prompt to overwrite existing files). Some refactor tasks will write out to a new file by default. This option will override the tasks default behaviour.") do |f|
+    options[:output_file_path] = f
+  end
+
+  parser.on("-O", "--output-template TEMPLATE", String, "Write outputs to files instead of stdout. The template is used to create the output name, where the it can have substitutions, '[FILE]', '[NAME]', '[DIR]', '[REFACTOR]' & '[EXT]'. Eg `[DIR]/[NAME]_[REFACTOR][EXT]` (will prompt to overwrite existing files)") do |t|
+    options[:output_template_path] = t
+  end
+
   parser.on("-c", "--context CONTEXT_FILES", Array, "Specify one or more files to use as context for the AI. The contents of these files will be prepended to the prompt sent to the AI.") do |c|
     options[:context_file_paths] = c
   end
@@ -50,8 +58,8 @@ option_parser = OptionParser.new do |parser|
     options[:ai_timeout] = m
   end
 
-  parser.on("--overwrite", "Always overwrite existing output files, 'y' for yes, 'n' for no, or 'a' for ask. Default to ask.") do
-    options[:overwrite] = true
+  parser.on("--overwrite ANSWER", "Always overwrite existing output files, 'y' for yes, 'n' for no, or 'a' for ask. Default to ask.") do |a|
+    options[:overwrite] = a
   end
 
   parser.on("-v", "--verbose", "Show extra output and progress info") do
@@ -69,6 +77,22 @@ option_parser = OptionParser.new do |parser|
 
   parser.separator ""
 
+  # Example in Refactor class:
+  #
+  # class << self
+  #   def command_line_options
+  #     [
+  #       {
+  #         key: :my_option_key,
+  #         short: "-s",
+  #         long: "--long-form-cli-param [FILE]",
+  #         type: String,
+  #         help: "help text"
+  #       },
+  #       ...
+  #     ]
+  #   end
+  # end
   supported_refactors.each do |name, refactorer|
     parser.separator "For refactor type '#{name}':" if refactorer.command_line_options.size.positive?
     refactorer.command_line_options.each do |option|

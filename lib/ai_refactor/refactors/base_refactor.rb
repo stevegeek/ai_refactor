@@ -28,6 +28,48 @@ module AIRefactor
 
       private
 
+      def file_processor
+        context = ::AIRefactor::Context.new(files: options[:context_file_paths], logger: logger)
+        prompt = ::AIRefactor::Prompt.new(input_path: input_file, prompt_file_path: prompt_file_path, context: context, logger: logger, options: options)
+        AIRefactor::FileProcessor.new(prompt: prompt, ai_client: ai_client, output_path: output_file_path, logger: logger, options: options)
+      end
+
+      def process!
+        processor = file_processor
+
+        if processor.output_exists?
+          return false unless overwrite_existing_output?(output_file_path)
+        end
+
+        logger.verbose "Converting #{input_file}..."
+
+        begin
+          output_content, finished_reason, usage = processor.process! do |content|
+            yield content if block_given?
+          end
+
+          logger.verbose "OpenAI finished, with reason '#{finished_reason}'..."
+          logger.verbose "Used tokens: #{usage["total_tokens"]}".colorize(:light_black) if usage
+          if finished_reason == "length"
+            logger.warn "Translation may contain an incomplete output as the max token length was reached. You can try using the '--continue' option next time to increase the length of generated output."
+          end
+
+          if !output_content || output_content.length == 0
+            logger.warn "Skipping #{input_file}, no translated output..."
+            logger.error "Failed to translate #{input_file}, finished reason #{finished_reason}"
+            self.failed_message = "AI conversion failed, no output was generated"
+            raise NoOutputError, "No output"
+          end
+
+          output_content
+        rescue => e
+          logger.error "Request to OpenAI failed: #{e.message}"
+          logger.warn "Skipping #{input_file}..."
+          self.failed_message = "Request to OpenAI failed"
+          raise e
+        end
+      end
+
       def overwrite_existing_output?(output_path)
         overwrite = options && options[:overwrite]&.downcase
         answer = if ["y", "n"].include? overwrite
@@ -56,6 +98,41 @@ module AIRefactor
         file.tap do |prompt|
           raise "No prompt file '#{prompt}' found for #{refactor_name}" unless File.exist?(prompt)
         end
+      end
+
+      def output_file_path
+        @output_file_path ||= determine_output_file_path
+      end
+
+      def determine_output_file_path
+        return output_file_path_from_template if output_template_path
+
+        path = options[:output_file_path]
+        return default_output_path unless path
+
+        if path == true
+          input_file
+        else
+          path
+        end
+      end
+
+      def default_output_path
+        nil
+      end
+
+      def output_template_path
+        options[:output_template_path]
+      end
+
+      def output_file_path_from_template
+        path = output_template_path.gsub("[FILE]", File.basename(input_file))
+          .gsub("[NAME]", File.basename(input_file, ".*"))
+          .gsub("[DIR]", File.dirname(input_file))
+          .gsub("[REFACTOR]", self.class.refactor_name)
+          .gsub("[EXT]", File.extname(input_file))
+        raise "Output template could not be used" unless path.length.positive?
+        path
       end
 
       def ai_client

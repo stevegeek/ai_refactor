@@ -8,7 +8,14 @@ module AIRefactor
     end
 
     def prepare_context
-      contexts = @files&.map do |file|
+      context = read_contexts
+      context ? "Extra context from the codebase: #{context.join("\n")}" : ""
+    end
+
+    private
+
+    def read_contexts
+      @files&.map do |file|
         context = if File.exist?(file)
           File.read(file)
         else
@@ -17,7 +24,6 @@ module AIRefactor
         end
         "#---\n# #{file}\n\n#{context}"
       end
-      contexts&.join("\n")
     end
   end
 end
