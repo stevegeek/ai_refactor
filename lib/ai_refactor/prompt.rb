@@ -2,6 +2,8 @@
 
 module AIRefactor
   class Prompt
+    INPUT_FILE_PATH_MARKER = "__{{input_file_path}}__"
+    OUTPUT_FILE_PATH_MARKER = "__{{output_file_path}}__"
     HEADER_MARKER = "__{{prompt_header}}__"
     FOOTER_MARKER = "__{{prompt_footer}}__"
     CONTEXT_MARKER = "__{{context}}__"
@@ -9,8 +11,9 @@ module AIRefactor
 
     attr_reader :file_path, :prompt_file_path
 
-    def initialize(input_path:, prompt_file_path:, options:, logger:, context: nil, prompt_header: nil, prompt_footer: nil)
+    def initialize(input_path:, output_file_path:, prompt_file_path:, options:, logger:, context: nil, prompt_header: nil, prompt_footer: nil)
       @file_path = input_path
+      @output_file_path = output_file_path
       @prompt_file_path = prompt_file_path
       @logger = logger
       @header = prompt_header
@@ -31,6 +34,8 @@ module AIRefactor
     def system_prompt
       prompt = expand_prompt(system_prompt_template, HEADER_MARKER, @header || "")
       prompt = expand_prompt(prompt, CONTEXT_MARKER, @context&.prepare_context || "")
+      prompt = expand_prompt(prompt, INPUT_FILE_PATH_MARKER, @file_path || "")
+      prompt = expand_prompt(prompt, OUTPUT_FILE_PATH_MARKER, @output_file_path || "")
       expand_prompt(prompt, FOOTER_MARKER, system_prompt_footer)
     end
 

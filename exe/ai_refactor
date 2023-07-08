@@ -8,11 +8,11 @@ require_relative "../lib/ai_refactor"
 options = {}
 
 supported_refactors = AIRefactor::Refactors.all
-supported_names = AIRefactor::Refactors.names
+descriptions = AIRefactor::Refactors.descriptions
 
 # General options for all refactor types
 option_parser = OptionParser.new do |parser|
-  parser.banner = "Usage: ai_refactor REFACTOR_TYPE INPUT_FILE_OR_DIR [options]\n\nWhere REFACTOR_TYPE is one of: #{supported_names}\n\n"
+  parser.banner = "Usage: ai_refactor REFACTOR_TYPE INPUT_FILE_OR_DIR [options]\n\nWhere REFACTOR_TYPE is one of: \n- #{descriptions.to_a.map { |refactor| refactor.join(": ") }.join("\n- ")}\n\n"
 
   parser.on("-o", "--output [FILE]", String, "Write output to given file instead of stdout. If no path provided will overwrite input file (will prompt to overwrite existing files). Some refactor tasks will write out to a new file by default. This option will override the tasks default behaviour.") do |f|
     options[:output_file_path] = f

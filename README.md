@@ -1,11 +1,15 @@
-# AI Refactor
+# AI Refactor for Ruby
 
-AI Refactor is an experimental tool to see how AI (specifically [OpenAI's ChatGPT](https://platform.openai.com/)) can be used to help apply refactoring to code.
+AI Refactor is an experimental tool to use AI to help apply refactoring to code.
 
-The goal is **not** that the AI decides what refactoring to do, but rather, given refactoring tasks specified by the human user,
-the AI can help identify which code to change and apply the relevant refactor.
+__The goal for AI Refactor is to help apply repetitive refactoring tasks, not to replace human mind that decides what refactoring is needed.__
 
-This is based on the assumption that the LLM AIs are pretty good at identifying patterns.
+AI Refactor currently uses [OpenAI's ChatGPT](https://platform.openai.com/).
+
+The tool lets the human user prompt the AI with explicit refactoring tasks, and can be run on one or more files at a time. 
+The tool then uses a LLM to apply the relevant refactor, and if appropriate, checks results by running tests and comparing output.
+
+The focus of the tool is work with the Ruby programming language ecosystem, but it can be used with any language. 
 
 ## Available refactors
 
@@ -45,6 +49,16 @@ Done processing all files!
 Applies the refactor specified by prompting the AI with the user supplied prompt. You must supply a prompt file with the `-p` option.
 
 The output is written to `stdout`, or to a file with the `--output` option. 
+
+### `minitest/write_test_for_class`
+
+Writes a minitest test for a given class. The output will, by default, be put into a directory named `test` in the current directory,
+in a path that matches the input file path, with a `_test.rb` suffix.
+
+For example, if the input file is `app/stuff/my_thing.rb` the output will be written to `test/app/stuff/my_thing_test.rb`.
+
+This refactor can benefit from being passed related files as context, for example, if the class under test inherits from another class,
+then context can be used to provide the parent class.
 
 ## Installation
 

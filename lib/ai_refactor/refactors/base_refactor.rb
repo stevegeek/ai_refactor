@@ -26,15 +26,19 @@ module AIRefactor
         @failed_message || "Reason not specified"
       end
 
+      def self.description
+        "(No description provided)"
+      end
+
       private
 
       def file_processor
         context = ::AIRefactor::Context.new(files: options[:context_file_paths], logger: logger)
-        prompt = ::AIRefactor::Prompt.new(input_path: input_file, prompt_file_path: prompt_file_path, context: context, logger: logger, options: options)
+        prompt = ::AIRefactor::Prompt.new(input_path: input_file, output_file_path: output_file_path, prompt_file_path: prompt_file_path, context: context, logger: logger, options: options)
         AIRefactor::FileProcessor.new(prompt: prompt, ai_client: ai_client, output_path: output_file_path, logger: logger, options: options)
       end
 
-      def process!
+      def process!(strip_ticks: true)
         processor = file_processor
 
         if processor.output_exists?
@@ -45,10 +49,16 @@ module AIRefactor
 
         begin
           output_content, finished_reason, usage = processor.process! do |content|
-            yield content if block_given?
+            if block_given?
+              yield content
+            elsif strip_ticks
+              content.gsub("```ruby", "").gsub("```", "")
+            else
+              content
+            end
           end
 
-          logger.verbose "OpenAI finished, with reason '#{finished_reason}'..."
+          logger.verbose "AI finished, with reason '#{finished_reason}'..."
           logger.verbose "Used tokens: #{usage["total_tokens"]}".colorize(:light_black) if usage
           if finished_reason == "length"
             logger.warn "Translation may contain an incomplete output as the max token length was reached. You can try using the '--continue' option next time to increase the length of generated output."
@@ -63,7 +73,7 @@ module AIRefactor
 
           output_content
         rescue => e
-          logger.error "Request to OpenAI failed: #{e.message}"
+          logger.error "Request to AI failed: #{e.message}"
           logger.warn "Skipping #{input_file}..."
           self.failed_message = "Request to OpenAI failed"
           raise e

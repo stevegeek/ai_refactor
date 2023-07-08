@@ -22,9 +22,7 @@ module AIRefactor
             logger.debug ">> Examples: #{spec_run.example_count}, Failures: #{spec_run.failure_count}, Pendings: #{spec_run.pending_count}\n"
 
             begin
-              result = process! do |content|
-                content.gsub("```ruby", "").gsub("```", "")
-              end
+              result = process!
             rescue AIRefactor::NoOutputError => _e
               return false
             rescue => e
@@ -63,6 +61,10 @@ module AIRefactor
               self.failed_message = "Generated test file run output did not match original RSpec spec run output"
               false
             end
+          end
+
+          def self.description
+            "Convert RSpec file to Minitest (for Rails apps)"
           end
 
           def default_output_path

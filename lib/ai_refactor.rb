@@ -14,8 +14,10 @@ require_relative "ai_refactor/test_runners/test_run_diff_report"
 
 require_relative "ai_refactor/refactors"
 require_relative "ai_refactor/refactors/base_refactor"
+
 require_relative "ai_refactor/refactors/generic"
 require_relative "ai_refactor/refactors/rails/minitest/rspec_to_minitest"
+require_relative "ai_refactor/refactors/minitest/write_test_for_class"
 # require_relative "ai_refactor/refactors/minitest_to_rspec"
 
 module AIRefactor

@@ -17,6 +17,11 @@ module AIRefactor
     end
     module_function :names
 
+    def descriptions
+      names.map { |n| "\"#{n}\"" }.zip(all.values.map(&:description)).to_h
+    end
+    module_function :descriptions
+
     def supported?(name)
       names.include?(name)
     end
