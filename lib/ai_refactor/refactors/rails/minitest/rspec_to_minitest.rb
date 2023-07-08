@@ -18,8 +18,8 @@ module AIRefactor
               return false
             end
 
-            logger.debug "Original test run results:"
-            logger.debug ">> Examples: #{spec_run.example_count}, Failures: #{spec_run.failure_count}, Pendings: #{spec_run.pending_count}"
+            logger.debug "\nOriginal test run results:"
+            logger.debug ">> Examples: #{spec_run.example_count}, Failures: #{spec_run.failure_count}, Pendings: #{spec_run.pending_count}\n"
 
             begin
               result = process! do |content|
@@ -47,19 +47,19 @@ module AIRefactor
               return false
             end
 
-            logger.debug "Translated test file results:"
-            logger.debug ">> Runs: #{test_run.example_count}, Failures: #{test_run.failure_count}, Skips: #{test_run.pending_count}"
+            logger.debug "\nTranslated test file results:"
+            logger.debug ">> Runs: #{test_run.example_count}, Failures: #{test_run.failure_count}, Skips: #{test_run.pending_count}\n"
 
             report = AIRefactor::TestRunners::TestRunDiffReport.new(spec_run, test_run)
 
             if report.no_differences?
               logger.verbose "Done converting #{input_file} to #{output_file_path}..."
-              logger.success "No differences found! Conversion worked!"
+              logger.success "\nNo differences found! Conversion worked!"
               true
             else
               logger.warn report.diff.colorize(:yellow)
               logger.verbose "Done converting #{input_file} to #{output_file_path}..."
-              logger.error "Differences found! Conversion failed!", bold: true
+              logger.error "\nDifferences found! Conversion failed!", bold: true
               self.failed_message = "Generated test file run output did not match original RSpec spec run output"
               false
             end
