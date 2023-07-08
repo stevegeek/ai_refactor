@@ -62,6 +62,10 @@ option_parser = OptionParser.new do |parser|
     options[:overwrite] = a
   end
 
+  parser.on("-N", "--no", "Never overwrite existing output files, same as --overwrite=n.") do |a|
+    options[:overwrite] = "n"
+  end
+
   parser.on("-v", "--verbose", "Show extra output and progress info") do
     options[:verbose] = true
   end

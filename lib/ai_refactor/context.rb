@@ -8,21 +8,19 @@ module AIRefactor
     end
 
     def prepare_context
-      context = read_contexts
-      context ? "Extra context from the codebase: #{context.join("\n")}" : ""
+      context = read_contexts&.compact
+      (context && context.size.positive?) ? "Extra context from the codebase: #{context.join("\n")}" : ""
     end
 
     private
 
     def read_contexts
       @files&.map do |file|
-        context = if File.exist?(file)
-          File.read(file)
-        else
+        unless File.exist?(file)
           @logger.warn "Context file #{file} does not exist"
-          ""
+          next
         end
-        "#---\n# #{file}\n\n#{context}"
+        "#---\n# #{file}\n\n#{File.read(file)}"
       end
     end
   end
