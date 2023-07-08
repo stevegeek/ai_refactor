@@ -23,20 +23,17 @@ The tool first runs the original RSpec spec file and then runs the generated min
 The comparison is simply the count of successful and failed tests but this is probably enough to determine if the conversion worked.
 
 ```shellq
-stephen$ OPENAI_API_KEY=my-key ai_refactor rails/minitest/rspec_to_minitest spec/models/my_thing_spec.rb -v
+stephen$ OPENAI_API_KEY=my-key ai_refactor rails/minitest/rspec_to_minitest spec/models/my_thing_spec.rb
 AI Refactor 1 files(s)/dir(s) '["spec/models/my_thing_spec.rb"]' with rails/minitest/rspec_to_minitest refactor
 ====================
 Processing spec/models/my_thing_spec.rb...
-[Run spec spec/models/my_thing_spec.rb... (bundle exec rspec spec/models/my_thing_spec.rb)]
-Do you wish to overwrite test/models/my_thing_test.rb? (y/n)
-y
-[Converting spec/models/my_thing_spec.rb...]
-[Generate AI output. Generation attempts left: 3]
-[OpenAI finished, with reason 'stop'...]
-[Used tokens: 1869]
-[Converted spec/models/my_thing_spec.rb to test/models/my_thing_test.rb...]
-[Run generated test file test/models/my_thing_test.rb (bundle exec rails test test/models/my_thing_test.rb)...]
-[Done converting spec/models/my_thing_spec.rb to test/models/my_thing_test.rb...]
+
+Original test run results:
+>> Examples: 41, Failures: 0, Pendings: 0
+
+Translated test file results:
+>> Runs: 41, Failures: 0, Skips: 0
+
 No differences found! Conversion worked!
 Refactor succeeded on spec/models/my_thing_spec.rb
 
@@ -47,20 +44,7 @@ Done processing all files!
 
 Applies the refactor specified by prompting the AI with the user supplied prompt. You must supply a prompt file with the `-p` option.
 
-The output is written to `stdout`, or to a file with the `--output` option. If `--output` is used without a value it overwrites the input.
-
-You can also output to a file using a template, `--output-template` to determine the output file name given a template string:
-
-The template is used to create the output name, where the it can have substitutions, '[FILE]', '[NAME]', '[DIR]', '[REFACTOR]' & '[EXT]'.
-
-Eg `--output-template "[DIR]/[NAME]_[REFACTOR][EXT]"`
-
-eg for the input `my_dir/my_class.rb`
-- `[FILE]`: `my_class.rb`
-- `[NAME]`: `my_class`
-- `[DIR]`: `my_dir`
-- `[REFACTOR]`: `generic`
-- `[EXT]`: `.rb`
+The output is written to `stdout`, or to a file with the `--output` option. 
 
 ## Installation
 
@@ -81,20 +65,44 @@ Usage: ai_refactor REFACTOR_TYPE INPUT_FILE_OR_DIR [options]
 
 Where REFACTOR_TYPE is one of: ["generic" ... (run ai_refactor --help for full list of refactor types)]
 
+    -o, --output [FILE]              Write output to given file instead of stdout. If no path provided will overwrite input file (will prompt to overwrite existing files). Some refactor tasks will write out to a new file by default. This option will override the tasks default behaviour.
+    -O, --output-template TEMPLATE   Write outputs to files instead of stdout. The template is used to create the output name, where the it can have substitutions, '[FILE]', '[NAME]', '[DIR]', '[REFACTOR]' & '[EXT]'. Eg `[DIR]/[NAME]_[REFACTOR][EXT]` (will prompt to overwrite existing files)
+    -c, --context CONTEXT_FILES      Specify one or more files to use as context for the AI. The contents of these files will be prepended to the prompt sent to the AI.
+    -r, --review-prompt              Show the prompt that will be sent to ChatGPT but do not actually call ChatGPT or make changes to files.
     -p, --prompt PROMPT_FILE         Specify path to a text file that contains the ChatGPT 'system' prompt.
-    -c, --continue [MAX_MESSAGES]    If ChatGPT stops generating due to the maximum token count being reached, continue to generate more messages, until a stop condition or MAX_MESSAGES. MAX_MESSAGES defaults to 3
+    -f, --diffs                      Request AI generate diffs of changes rather than writing out the whole file.
+    -C, --continue [MAX_MESSAGES]    If ChatGPT stops generating due to the maximum token count being reached, continue to generate more messages, until a stop condition or MAX_MESSAGES. MAX_MESSAGES defaults to 3
     -m, --model MODEL_NAME           Specify a ChatGPT model to use (default gpt-4).
         --temperature TEMP           Specify the temperature parameter for ChatGPT (default 0.7).
         --max-tokens MAX_TOKENS      Specify the max number of tokens of output ChatGPT can generate. Max will depend on the size of the prompt (default 1500)
     -t, --timeout SECONDS            Specify the max wait time for ChatGPT response.
+        --overwrite ANSWER           Always overwrite existing output files, 'y' for yes, 'n' for no, or 'a' for ask. Default to ask.
     -v, --verbose                    Show extra output and progress info
     -d, --debug                      Show debugging output to help diagnose issues
     -h, --help                       Prints this help
-
-For refactor type 'generic':
-        --output [FILE]              Write output to file instead of stdout. If no path provided will overwrite input file (will prompt to overwrite existing files)
-        --output-template TEMPLATE   Write outputs to files instead of stdout. The template is used to create the output name, where the it can have substitutions, '[FILE]', '[NAME]', '[DIR]', '[REFACTOR]' & '[EXT]'. Eg `[DIR]/[NAME]_[REFACTOR][EXT]` (will prompt to overwrite existing files)
 ```
+
+## Outputs
+
+Some refactor tasks will write out to a new file by default, others to stdout.
+
+The `--output` lets you specify a file to write to instead of the Refactors default behaviour.
+
+If `--output` is used without a value it overwrites the input with a prompt to overwrite existing files.
+
+You can also output to a file using a template, `--output-template` to determine the output file name given a template string:
+
+The template is used to create the output name, where the it can have substitutions, '[FILE]', '[NAME]', '[DIR]', '[REFACTOR]' & '[EXT]'.
+
+Eg `--output-template "[DIR]/[NAME]_[REFACTOR][EXT]"`
+
+eg for the input `my_dir/my_class.rb`
+- `[FILE]`: `my_class.rb`
+- `[NAME]`: `my_class`
+- `[DIR]`: `my_dir`
+- `[REFACTOR]`: `generic`
+- `[EXT]`: `.rb`
+
 
 ## Note on performance and ChatGPT version
 
