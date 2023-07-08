@@ -32,4 +32,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency "colorize", "< 2.0"
   spec.add_dependency "open3", "< 2.0"
   spec.add_dependency "ruby-openai", ">= 3.4.0", "< 5.0"
+  spec.add_dependency "zeitwerk", "~> 2.6"
 end

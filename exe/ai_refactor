@@ -5,6 +5,8 @@ require "colorize"
 require "openai"
 require_relative "../lib/ai_refactor"
 
+require "dotenv/load"
+
 options = {}
 
 supported_refactors = AIRefactor::Refactors.all

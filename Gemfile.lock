@@ -5,12 +5,14 @@ PATH
       colorize (< 2.0)
       open3 (< 2.0)
       ruby-openai (>= 3.4.0, < 5.0)
+      zeitwerk (~> 2.6)
 
 GEM
   remote: https://rubygems.org/
   specs:
     ast (2.4.2)
     colorize (0.8.1)
+    dotenv (2.8.1)
     faraday (2.7.4)
       faraday-net_http (>= 2.0, < 3.1)
       ruby2_keywords (>= 0.0.4)
@@ -62,12 +64,14 @@ GEM
       lint_roller (~> 1.0)
       rubocop-performance (~> 1.16.0)
     unicode-display_width (2.4.2)
+    zeitwerk (2.6.8)
 
 PLATFORMS
   arm64-darwin-22
 
 DEPENDENCIES
   ai_refactor!
+  dotenv
   minitest (~> 5.0)
   rake (~> 13.0)
   standard (~> 1.3)
