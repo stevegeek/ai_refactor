@@ -9,7 +9,16 @@ module AIRefactor
         Refactors.register(subclass)
       end
 
+      def self.description
+        "(No description provided)"
+      end
+
+      def self.takes_input_files?
+        true
+      end
+
       attr_reader :input_file, :options, :logger
+      attr_accessor :input_content
       attr_writer :failed_message
 
       def initialize(input_file, options, logger)
@@ -26,15 +35,11 @@ module AIRefactor
         @failed_message || "Reason not specified"
       end
 
-      def self.description
-        "(No description provided)"
-      end
-
       private
 
       def file_processor
         context = ::AIRefactor::Context.new(files: options[:context_file_paths], logger: logger)
-        prompt = ::AIRefactor::Prompt.new(input_path: input_file, output_file_path: output_file_path, prompt_file_path: prompt_file_path, context: context, logger: logger, options: options)
+        prompt = ::AIRefactor::Prompt.new(input_content: input_content, input_path: input_file, output_file_path: output_file_path, prompt_file_path: prompt_file_path, context: context, logger: logger, options: options)
         AIRefactor::FileProcessor.new(prompt: prompt, ai_client: ai_client, output_path: output_file_path, logger: logger, options: options)
       end
 
@@ -45,7 +50,7 @@ module AIRefactor
           return false unless overwrite_existing_output?(output_file_path)
         end
 
-        logger.verbose "Converting #{input_file}..."
+        logger.verbose "Processing #{input_file}..."
 
         begin
           output_content, finished_reason, usage = processor.process! do |content|

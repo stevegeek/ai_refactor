@@ -9,10 +9,11 @@ module AIRefactor
     CONTEXT_MARKER = "__{{context}}__"
     CONTENT_MARKER = "__{{content}}__"
 
-    attr_reader :file_path, :prompt_file_path
+    attr_reader :input_file_path, :prompt_file_path
 
-    def initialize(input_path:, output_file_path:, prompt_file_path:, options:, logger:, context: nil, prompt_header: nil, prompt_footer: nil)
-      @file_path = input_path
+    def initialize(options:, logger:, context: nil, input_content: nil, input_path: nil, output_file_path: nil, prompt_file_path: nil, prompt_header: nil, prompt_footer: nil)
+      @input_content = input_content
+      @input_file_path = input_path
       @output_file_path = output_file_path
       @prompt_file_path = prompt_file_path
       @logger = logger
@@ -34,7 +35,7 @@ module AIRefactor
     def system_prompt
       prompt = expand_prompt(system_prompt_template, HEADER_MARKER, @header || "")
       prompt = expand_prompt(prompt, CONTEXT_MARKER, @context&.prepare_context || "")
-      prompt = expand_prompt(prompt, INPUT_FILE_PATH_MARKER, @file_path || "")
+      prompt = expand_prompt(prompt, INPUT_FILE_PATH_MARKER, @input_file_path || "")
       prompt = expand_prompt(prompt, OUTPUT_FILE_PATH_MARKER, @output_file_path || "")
       expand_prompt(prompt, FOOTER_MARKER, system_prompt_footer)
     end
@@ -64,7 +65,12 @@ module AIRefactor
     end
 
     def user_prompt
-      expand_prompt(input_prompt, CONTENT_MARKER, File.read(@file_path))
+      expand_prompt(input_prompt, CONTENT_MARKER, input_to_process)
+    end
+
+    def input_to_process
+      return File.read(@input_file_path) if @input_file_path
+      @input_content
     end
 
     def input_prompt

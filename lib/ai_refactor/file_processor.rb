@@ -6,7 +6,7 @@ require "json"
 
 module AIRefactor
   class FileProcessor
-    attr_reader :file_path, :output_path, :logger, :options
+    attr_reader :input_file_path, :output_path, :logger, :options
 
     def initialize(prompt:, ai_client:, logger:, output_path: nil, options: {})
       @prompt = prompt
@@ -22,7 +22,7 @@ module AIRefactor
     end
 
     def process!
-      logger.debug("Processing #{@prompt.file_path} with prompt in #{@prompt.prompt_file_path}")
+      logger.debug("Processing #{@prompt.input_file_path} with prompt in #{@prompt.prompt_file_path}")
       logger.debug("Options: #{options.inspect}")
       messages = @prompt.chat_messages
       if options[:review_prompt]

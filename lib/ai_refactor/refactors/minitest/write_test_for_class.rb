@@ -38,6 +38,10 @@ module AIRefactor
           output_file_path ? true : output_content
         end
 
+        def self.description
+          "Write a minitest test for a class"
+        end
+
         def default_output_path
           File.join("test", input_file.gsub(/\.rb$/, "_test.rb"))
         end
