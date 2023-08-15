@@ -16,7 +16,7 @@ module AIRefactor
           logger.verbose "Creating changelog entries for project from #{options[:git_commit_count] || 3} commits..."
           logger.verbose "Write output to #{output_file_path}..." if output_file_path
 
-          self.input_content = `git log -#{options[:git_commit_count] || 3} --pretty=format:"%s"`.split("\n").map { |line| "- #{line}" }.join("\n")
+          self.input_content = `git log -#{options[:git_commit_count] || 3} --pretty=format:"%ci %d %s"`.split("\n").map { |line| "- #{line}" }.join("\n")
           logger.debug "\nInput messages: \n#{input_content}\n\n"
           # begin
           output_content = process!(strip_ticks: false)
