@@ -27,14 +27,14 @@ module AIRefactor
       end
 
       if refactorer.takes_input_files?
-        inputs = inputs.map do |path|
+        expanded_inputs = inputs.map do |path|
           File.exist?(path) ? path : Dir.glob(path)
         end.flatten
 
-        logger.info "AI Refactor #{inputs.size} files(s)/dir(s) '#{inputs}' with #{refactorer.refactor_name} refactor\n"
+        logger.info "AI Refactor #{expanded_inputs.size} files(s)/dir(s) '#{expanded_inputs}' with #{refactorer.refactor_name} refactor\n"
         logger.info "====================\n"
 
-        return_values = inputs.map do |file|
+        return_values = expanded_inputs.map do |file|
           logger.info "Processing #{file}..."
 
           refactor = refactorer.new(file, options, logger)
