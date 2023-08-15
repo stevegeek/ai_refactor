@@ -82,6 +82,7 @@ Where REFACTOR_TYPE is one of: ["generic" ... (run ai_refactor --help for full l
     -o, --output [FILE]              Write output to given file instead of stdout. If no path provided will overwrite input file (will prompt to overwrite existing files). Some refactor tasks will write out to a new file by default. This option will override the tasks default behaviour.
     -O, --output-template TEMPLATE   Write outputs to files instead of stdout. The template is used to create the output name, where the it can have substitutions, '[FILE]', '[NAME]', '[DIR]', '[REFACTOR]' & '[EXT]'. Eg `[DIR]/[NAME]_[REFACTOR][EXT]` (will prompt to overwrite existing files)
     -c, --context CONTEXT_FILES      Specify one or more files to use as context for the AI. The contents of these files will be prepended to the prompt sent to the AI.
+    -x, --extra CONTEXT_TEXT         Specify some text to be prepended to the prompt sent to the AI as extra information of note.
     -r, --review-prompt              Show the prompt that will be sent to ChatGPT but do not actually call ChatGPT or make changes to files.
     -p, --prompt PROMPT_FILE         Specify path to a text file that contains the ChatGPT 'system' prompt.
     -f, --diffs                      Request AI generate diffs of changes rather than writing out the whole file.
@@ -91,6 +92,7 @@ Where REFACTOR_TYPE is one of: ["generic" ... (run ai_refactor --help for full l
         --max-tokens MAX_TOKENS      Specify the max number of tokens of output ChatGPT can generate. Max will depend on the size of the prompt (default 1500)
     -t, --timeout SECONDS            Specify the max wait time for ChatGPT response.
         --overwrite ANSWER           Always overwrite existing output files, 'y' for yes, 'n' for no, or 'a' for ask. Default to ask.
+    -N, --no                         Never overwrite existing output files, same as --overwrite=n.
     -v, --verbose                    Show extra output and progress info
     -d, --debug                      Show debugging output to help diagnose issues
     -h, --help                       Prints this help
