@@ -3,6 +3,7 @@
 require "optparse"
 require "colorize"
 require "openai"
+require "shellwords"
 require_relative "../lib/ai_refactor"
 
 require "dotenv/load"
@@ -111,11 +112,32 @@ option_parser = OptionParser.new do |parser|
   end
 end
 
-option_parser.parse!
+# Load config from ~/.ai_refactor or .ai_refactor
+home_config_file_path = File.expand_path("~/.ai_refactor")
+local_config_file_path = File.join(Dir.pwd, ".ai_refactor")
+
+arguments = ARGV.dup
+
+config_file_path = if File.exist?(local_config_file_path)
+  local_config_file_path
+elsif File.exist?(home_config_file_path)
+  home_config_file_path
+end
+if config_file_path
+  config_string = File.read(config_file_path)
+  config_lines = config_string.split(/\n+/).reject { |s| s =~ /\A\s*#/ }
+  arguments += config_lines.flat_map(&:shellsplit)
+end
+
+option_parser.parse!(arguments)
 
 logger = AIRefactor::Logger.new(verbose: options[:verbose], debug: options[:debug])
 
-job = ::AIRefactor::Cli.new(refactoring_type: ARGV.shift, inputs: ARGV, options: options, logger: logger)
+if config_file_path
+  logger.info "Loaded config from '#{config_file_path}'..."
+end
+
+job = ::AIRefactor::Cli.new(refactoring_type: arguments.shift, inputs: arguments, options: options, logger: logger)
 
 unless job.valid?
   puts option_parser.help
