@@ -2,14 +2,20 @@
 
 module AIRefactor
   class Context
-    def initialize(files:, logger:)
+    def initialize(files:, text:, logger:)
       @files = files
+      @text = text
       @logger = logger
     end
 
     def prepare_context
       context = read_contexts&.compact
-      (context && context.size.positive?) ? "Extra context from the codebase: #{context.join("\n")}" : ""
+      file_context = (context && context.size.positive?) ? "Here is some related files:\n\n#{context.join("\n")}" : ""
+      if @text.nil? || @text.empty?
+        file_context
+      else
+        "Also note: #{@text}\n\n#{file_context}"
+      end
     end
 
     private
@@ -20,7 +26,7 @@ module AIRefactor
           @logger.warn "Context file #{file} does not exist"
           next
         end
-        "#---\n# #{file}\n\n#{File.read(file)}"
+        "#---\n# File '#{file}':\n\n```#{File.read(file)}```\n"
       end
     end
   end

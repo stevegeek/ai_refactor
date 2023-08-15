@@ -29,6 +29,10 @@ option_parser = OptionParser.new do |parser|
     options[:context_file_paths] = c
   end
 
+  parser.on("-x", "--extra CONTEXT_TEXT", String, "Specify some text to be prepended to the prompt sent to the AI as extra information of note.") do |c|
+    options[:context_text] = c
+  end
+
   parser.on("-r", "--review-prompt", "Show the prompt that will be sent to ChatGPT but do not actually call ChatGPT or make changes to files.") do
     options[:review_prompt] = true
   end

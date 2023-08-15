@@ -18,12 +18,12 @@ module AIRefactor
 
           self.input_content = `git log -#{options[:git_commit_count] || 3} --pretty=format:"%ci %d %s"`.split("\n").map { |line| "- #{line}" }.join("\n")
           logger.debug "\nInput messages: \n#{input_content}\n\n"
-          # begin
-          output_content = process!(strip_ticks: false)
-          # rescue => e
-          #   logger.error "Failed to process: #{e.message}"
-          #   return false
-          # end
+          begin
+            output_content = process!(strip_ticks: false)
+          rescue => e
+            logger.error "Failed to process: #{e.message}"
+            return false
+          end
 
           return false unless output_content
 

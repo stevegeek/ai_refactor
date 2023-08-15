@@ -38,7 +38,7 @@ module AIRefactor
       private
 
       def file_processor
-        context = ::AIRefactor::Context.new(files: options[:context_file_paths], logger: logger)
+        context = ::AIRefactor::Context.new(files: options[:context_file_paths], text: options[:context_text], logger: logger)
         prompt = ::AIRefactor::Prompt.new(input_content: input_content, input_path: input_file, output_file_path: output_file_path, prompt_file_path: prompt_file_path, context: context, logger: logger, options: options)
         AIRefactor::FileProcessor.new(prompt: prompt, ai_client: ai_client, output_path: output_file_path, logger: logger, options: options)
       end
@@ -107,7 +107,6 @@ module AIRefactor
           options[:prompt_file_path]
         else
           location = Module.const_source_location(::AIRefactor::Refactors::BaseRefactor.name)
-          puts "location: #{location}"
           File.join(File.dirname(location.first), "#{refactor_name}.md")
         end
         file.tap do |prompt|
