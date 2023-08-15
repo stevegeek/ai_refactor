@@ -1,6 +1,6 @@
 # AI Refactor Changelog
 
-## [0.4.0] - Unreleased
+## [0.4.0] - 2023-08-15
 
 ### Added
 
@@ -10,6 +10,8 @@
 - New refactor to write changelog entries.
 - 'review' prompt CLI switch without invoking AI.
 - CLI switch to control output overwrite behaviour.
+- Extra text context for prompts via command line with -x
+- Support for .ai_refactor config file which can provide default options/switches for prompts.
 
 ### Changed
 
