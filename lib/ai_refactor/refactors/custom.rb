@@ -2,9 +2,9 @@
 
 module AIRefactor
   module Refactors
-    class Generic < BaseRefactor
+    class Custom < BaseRefactor
       def run
-        logger.verbose "Generic refactor to #{input_file}... (using user supplied prompt #{prompt_file_path})"
+        logger.verbose "Custom refactor to #{input_file}... (using user supplied prompt #{prompt_file_path})"
         logger.verbose "Write output to #{output_file_path}..." if output_file_path
 
         begin
