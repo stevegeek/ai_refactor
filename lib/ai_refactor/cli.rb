@@ -1,7 +1,53 @@
 # frozen_string_literal: true
 
+require "readline"
+
 module AIRefactor
   class Cli
+    class << self
+      def load_options_from_config_file
+        # Load config from ~/.ai_refactor or .ai_refactor
+        home_config_file_path = File.expand_path("~/.ai_refactor")
+        local_config_file_path = File.join(Dir.pwd, ".ai_refactor")
+
+        config_file_path = if File.exist?(local_config_file_path)
+          local_config_file_path
+        elsif File.exist?(home_config_file_path)
+          home_config_file_path
+        end
+        return unless config_file_path
+
+        config_string = File.read(config_file_path)
+        config_lines = config_string.split(/\n+/).reject { |s| s =~ /\A\s*#/ }.map(&:strip)
+        config_lines.flat_map(&:shellsplit)
+      end
+
+      def request_text_input(prompt)
+        puts prompt
+        gets.chomp
+      end
+
+      def request_input_with_autocomplete(prompt, completion_list)
+        Readline.completion_append_character = nil
+        Readline.completion_proc = proc do |str|
+          completion_list.grep(/^#{Regexp.escape(str)}/)
+        end
+        Readline.readline(prompt, true)
+      end
+
+      def request_file_inputs(prompt, multiple: true)
+        Readline.completion_append_character = multiple ? " " : nil
+        Readline.completion_proc = Readline::FILENAME_COMPLETION_PROC
+
+        paths = Readline.readline(prompt, true)
+        multiple ? paths.gsub(/[^\\] /, ",") : paths
+      end
+
+      def request_switch(prompt)
+        (Readline.readline(prompt, true) =~ /^y/i) ? true : false
+      end
+    end
+
     def initialize(refactoring_type:, inputs:, options:, logger:)
       @refactoring_type = refactoring_type
       @inputs = inputs

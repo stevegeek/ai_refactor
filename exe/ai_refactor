@@ -11,11 +11,11 @@ require "dotenv/load"
 options = {}
 
 supported_refactors = AIRefactor::Refactors.all
-descriptions = AIRefactor::Refactors.descriptions
+refactors_descriptions = AIRefactor::Refactors.descriptions
 
 # General options for all refactor types
 option_parser = OptionParser.new do |parser|
-  parser.banner = "Usage: ai_refactor REFACTOR_TYPE INPUT_FILE_OR_DIR [options]\n\nWhere REFACTOR_TYPE is one of: \n- #{descriptions.to_a.map { |refactor| refactor.join(": ") }.join("\n- ")}\n\n"
+  parser.banner = "Usage: ai_refactor REFACTOR_TYPE INPUT_FILE_OR_DIR [options]\n\nWhere REFACTOR_TYPE is one of: \n- #{refactors_descriptions.to_a.map { |refactor| refactor.join(": ") }.join("\n- ")}\n\n"
 
   parser.on("-o", "--output [FILE]", String, "Write output to given file instead of stdout. If no path provided will overwrite input file (will prompt to overwrite existing files). Some refactor tasks will write out to a new file by default. This option will override the tasks default behaviour.") do |f|
     options[:output_file_path] = f
@@ -116,24 +116,64 @@ option_parser = OptionParser.new do |parser|
   end
 end
 
-# Load config from ~/.ai_refactor or .ai_refactor
-home_config_file_path = File.expand_path("~/.ai_refactor")
-local_config_file_path = File.join(Dir.pwd, ".ai_refactor")
+def exit_with_option_error(message, option_parser)
+  puts message
+  puts option_parser
+  exit false
+end
 
 arguments = ARGV.dup
 
-config_file_path = if File.exist?(local_config_file_path)
-  local_config_file_path
-elsif File.exist?(home_config_file_path)
-  home_config_file_path
-end
-if config_file_path
-  config_string = File.read(config_file_path)
-  config_lines = config_string.split(/\n+/).reject { |s| s =~ /\A\s*#/ }
-  arguments += config_lines.flat_map(&:shellsplit)
+config_file_path = AIRefactor::Cli.load_options_from_config_file
+arguments += config_file_path if config_file_path
+
+# If no command was provided, prompt for one in interactive mode
+if arguments.empty? || arguments.all? { |arg| arg.start_with?("-") && !(arg == "-h" || arg == "--help") }
+  interactive_log = AIRefactor::Logger.new
+  # For each option that is required but not provided, prompt for it
+  # Put the option in arguments to parse with option_parser
+  interactive_log.info "Interactive mode started. You can use tab to autocomplete:"
+  predefined_commands = AIRefactor::Refactors.names
+
+  interactive_log.info "Available refactors: #{predefined_commands.join(", ")}\n"
+  command = AIRefactor::Cli.request_input_with_autocomplete("Enter refactor name: ", predefined_commands)
+  exit_with_option_error("No refactor name provided.", option_parser) if command.nil? || command.empty?
+  initial = [command]
+
+  input_path = AIRefactor::Cli.request_file_inputs("Enter input file path: ", multiple: false)
+  exit_with_option_error("No input file path provided.", option_parser) if input_path.nil? || input_path.empty?
+  initial << input_path
+
+  arguments.prepend(*initial)
+
+  # Ask if template should be used - then prompt for it
+  # parser.on("-O", "--output-template TEMPLATE", String, "Write outputs to files instead of stdout. The template is used to create the output name, where the it can have substitutions, '[FILE]', '[NAME]', '[DIR]', '[REFACTOR]' & '[EXT]'. Eg `[DIR]/[NAME]_[REFACTOR][EXT]` (will prompt to overwrite existing files)") do |t|
+  #   options[:output_template_path] = t
+  # end
+
+  output = AIRefactor::Cli.request_file_inputs("Enter output file path (blank for refactor default): ", multiple: false)
+  arguments.concat(["-o", " #{output}"]) unless output.nil? || output.empty?
+
+  context_text = AIRefactor::Cli.request_text_input("Enter extra text to add to prompt (blank for none): ")
+  arguments.concat(["-x", context_text]) unless context_text.nil? || context_text.empty?
+
+  context_files = AIRefactor::Cli.request_file_inputs("Enter extra context file path(s) (blank for none): ")
+  arguments.concat(["-c", context_files]) unless context_files.nil? || context_files.empty?
+
+  prompt_file = AIRefactor::Cli.request_file_inputs("Enter Prompt file path (blank for refactor default): ", multiple: false)
+  arguments.concat(["-p", prompt_file]) unless prompt_file.nil? || prompt_file.empty?
+
+  review = AIRefactor::Cli.request_switch("Dry-run (review prompt only)? (y/N) (blank for 'N'): ")
+  arguments << "-r" if review
 end
 
-option_parser.parse!(arguments)
+File.write(".ai_refactor_history", arguments.join(" ") + "\n", mode: "a")
+
+begin
+  option_parser.parse!(arguments)
+rescue OptionParser::InvalidOption, OptionParser::MissingArgument
+  exit_with_option_error($!, option_parser)
+end
 
 logger = AIRefactor::Logger.new(verbose: options[:verbose], debug: options[:debug])
 
@@ -141,13 +181,12 @@ if config_file_path
   logger.info "Loaded config from '#{config_file_path}'..."
 end
 
-job = ::AIRefactor::Cli.new(refactoring_type: arguments.shift, inputs: arguments, options: options, logger: logger)
+job = AIRefactor::Cli.new(refactoring_type: arguments.shift, inputs: arguments, options: options, logger: logger)
 
 unless job.valid?
-  puts option_parser.help
-  exit 1
+  exit_with_option_error("Refactor job failed.", option_parser)
 end
 
 unless job.run
-  exit 1
+  exit false
 end
