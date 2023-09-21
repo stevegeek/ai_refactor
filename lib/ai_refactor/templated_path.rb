@@ -17,7 +17,6 @@ module AIRefactor
       path = @template.dup
       @template.scan(/\[(FILE|NAME|DIR|REFACTOR|EXT)(\|([^|]+)\|([^\]]*))?\]/).each do |match|
         type, sub, old_value, new_value = match
-        puts "type: #{type}, sub: #{sub}, old_value: #{old_value}, new_value: #{new_value}"
         value = send(type.downcase.to_sym)
         value = value.gsub(old_value, new_value) if sub
         path.gsub!("[#{type}#{sub}]", value)
