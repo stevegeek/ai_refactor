@@ -9,18 +9,18 @@ module AIRefactor
     CONTEXT_MARKER = "__{{context}}__"
     CONTENT_MARKER = "__{{content}}__"
 
-    attr_reader :input_file_path, :prompt_file_path
+    attr_reader :input_file_path
 
-    def initialize(options:, logger:, context: nil, input_content: nil, input_path: nil, output_file_path: nil, prompt_file_path: nil, prompt_header: nil, prompt_footer: nil)
+    def initialize(options:, logger:, context: nil, input_content: nil, input_path: nil, output_file_path: nil, prompt: nil, prompt_header: nil, prompt_footer: nil)
       @input_content = input_content
       @input_file_path = input_path
       @output_file_path = output_file_path
-      @prompt_file_path = prompt_file_path
       @logger = logger
       @header = prompt_header
       @footer = prompt_footer
       @diff = options[:diff]
       @context = context
+      @prompt = prompt || raise(StandardError, "Prompt not provided")
     end
 
     def chat_messages
@@ -41,7 +41,7 @@ module AIRefactor
     end
 
     def system_prompt_template
-      File.read(@prompt_file_path)
+      @prompt
     end
 
     def system_prompt_footer

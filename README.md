@@ -1,22 +1,46 @@
-# AI Refactor for Ruby
+# AIRefactor for Ruby
 
-AI Refactor is an experimental tool to use AI to help apply refactoring to code.
+__The goal for AIRefactor is to use LLMs to apply repetitive refactoring tasks to code.__
 
-__The goal for AI Refactor is to help apply repetitive refactoring tasks, not to replace human mind that decides what refactoring is needed.__
+First the human decides what refactoring is needed and builds up a prompt to describe the task, or uses one of AIRefactors provided prompts.
+
+AIRefactor then helps to apply the refactoring to one or more files.
+
+In some cases, the tool can then check the generated code by running tests and comparing test outputs.
+
+#### Notes
+
+AI Refactor is an experimental tool and under active development as I explore the idea myself. It may not work as expected, or
+change in ways that break existing functionality.
+
+The focus of the tool is work with the Ruby programming language ecosystem, but it can be used with any language.
 
 AI Refactor currently uses [OpenAI's ChatGPT](https://platform.openai.com/).
 
-The tool lets the human user prompt the AI with explicit refactoring tasks, and can be run on one or more files at a time. 
-The tool then uses a LLM to apply the relevant refactor, and if appropriate, checks results by running tests and comparing output.
+## Examples
 
-The focus of the tool is work with the Ruby programming language ecosystem, but it can be used with any language. 
+See the [examples](examples/) directory for some examples of using the tool.
 
 ## Available refactors
 
-Currently available:
+Write your own prompt:
 
+- `ruby/write_ruby`: provide your own prompt for the AI and expect to output Ruby code (no input files required)
+- `ruby/refactor_ruby`: provide your own refactoring prompt for the AI and expect to output Ruby code
+- `custom`: provide your own prompt for the AI and run against the input files. There is no expectation of the output.
+
+Use a pre-built prompt:
+
+- `minitest/write_test_for_class`: write a minitest test for a given class
 - `rails/minitest/rspec_to_minitest`: convert RSpec specs to minitest tests in Rails apps
-- `generic`: provide your own prompt for the AI and run against the input files
+
+### User supplied prompts, eg `custom`, `ruby/write_ruby` and `ruby/refactor_ruby`
+
+Applies the refactor specified by prompting the AI with the user supplied prompt. You must supply a prompt file with the `-p` option.
+
+The output is written to `stdout`, or to a file with the `--output` option.
+
+User supplied prompts are best configured using a command file, see below.
 
 ### `rails/minitest/rspec_to_minitest`
 
@@ -44,12 +68,6 @@ Refactor succeeded on spec/models/my_thing_spec.rb
 Done processing all files!
 ```
 
-### `generic` (user supplied prompt)
-
-Applies the refactor specified by prompting the AI with the user supplied prompt. You must supply a prompt file with the `-p` option.
-
-The output is written to `stdout`, or to a file with the `--output` option. 
-
 ### `minitest/write_test_for_class`
 
 Writes a minitest test for a given class. The output will, by default, be put into a directory named `test` in the current directory,
@@ -75,9 +93,9 @@ If bundler is not being used to manage dependencies, install the gem by executin
 See `ai_refactor --help` for more information.
 
 ```
-Usage: ai_refactor REFACTOR_TYPE INPUT_FILE_OR_DIR [options]
+Usage: ai_refactor REFACTOR_TYPE_OR_COMMAND_FILE INPUT_FILE_OR_DIR [options]
 
-Where REFACTOR_TYPE is one of: ["generic" ... (run ai_refactor --help for full list of refactor types)]
+Where REFACTOR_TYPE_OR_COMMAND_FILE is either the path to a command YML file, or one of the refactor types: ["custom" ... (run ai_refactor --help for full list of refactor types)]
 
     -o, --output [FILE]              Write output to given file instead of stdout. If no path provided will overwrite input file (will prompt to overwrite existing files). Some refactor tasks will write out to a new file by default. This option will override the tasks default behaviour.
     -O, --output-template TEMPLATE   Write outputs to files instead of stdout. The template is used to create the output name, where the it can have substitutions, '[FILE]', '[NAME]', '[DIR]', '[REFACTOR]' & '[EXT]'. Eg `[DIR]/[NAME]_[REFACTOR][EXT]` (will prompt to overwrite existing files)
@@ -97,6 +115,75 @@ Where REFACTOR_TYPE is one of: ["generic" ... (run ai_refactor --help for full l
     -d, --debug                      Show debugging output to help diagnose issues
     -h, --help                       Prints this help
 ```
+
+### Interactive mode
+
+A basic interactive mode exists too, where you are prompted for options. 
+
+Start interactive mode by not specifying anything for `REFACTOR_TYPE_OR_COMMAND_FILE` (ie no refactor type or command file)
+
+### Command files and Custom prompts
+
+Apart from invoking the tool with CLI options, the tool can also be invoked with a command file.
+
+This makes it easier to build custom refactor prompts for projects, and run that custom refactor multiple times.
+
+The command file is a YAML file that contains configuration options to pass to the tool.
+
+The format of the YAML file is:
+
+```yaml
+# Required options:
+refactor: refactor type name, eg 'ruby/write_ruby'
+# Optional options:
+input_file_paths: 
+  - input files or directories
+output_file_path: output file or directory
+output_template_path: output file template (see docs)
+prompt_file_path: path
+prompt: |
+  A custom prompt to send to ChatGPT if the command needs it (otherwise read from file)
+context_file_paths: 
+    - file1.rb
+    - file2.rb
+# Other configuration options:
+context_text: |
+    Some extra info to prepend to the prompt
+diff: true/false (default false)
+ai_max_attempts: max times to generate more if AI does not complete generating (default 3)
+ai_model: ChatGPT model name (default gpt-4)
+ai_temperature: ChatGPT temperature (default 0.7)
+ai_max_tokens: ChatGPT max tokens (default 1500)
+ai_timeout: ChatGPT timeout (default 60)
+overwrite: y/n/a (default a)
+verbose: true/false (default false)
+debug: true/false (default false)
+```
+
+The command file can be invoked by passing it as the first argument to the tool:
+
+```shell
+ai_refactor my_command_file.yml
+```
+
+Other options can be passed on the command line and will override the options in the command file.
+
+For example, if the command file contains:
+
+```shell
+ai_refactor my_command_file.yml my_input.rb -d --output foo.rb
+```
+
+### Prompt template substitutions
+
+Prompt text can contain the following substitutions:
+
+* `__{{input_file_path}}__`: the path to the input file
+* `__{{output_file_path}}__`: the path to the output file
+* `__{{prompt_header}}__`: the place the pre-build prompt will be injected, if used
+* `__{{prompt_footer}}__`: prompt text that will be inserted after the prompt, eg the "make diffs" prompt if `--diffs` is used
+* `__{{context}}__`: the contents of the context files, if any
+* `__{{content}}__`: the contents of input file, if any
 
 ## Outputs
 
@@ -119,6 +206,17 @@ eg for the input `my_dir/my_class.rb`
 - `[REFACTOR]`: `generic`
 - `[EXT]`: `.rb`
 
+## Configuration
+
+### `.ai_refactor` file
+
+The tool can be configured using a `.ai_refactor` file in the current directory or in the user's home directory.
+
+This file provides default CLI switches to add to any `ai_refactor` command.
+
+## Command history
+
+The tool keeps a history of commands run in the `.ai_refactor_history` file in the current working directory.
 
 ## Note on performance and ChatGPT version
 

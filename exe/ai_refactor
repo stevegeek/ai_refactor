@@ -8,77 +8,82 @@ require_relative "../lib/ai_refactor"
 
 require "dotenv/load"
 
-options = {}
-
 supported_refactors = AIRefactor::Refactors.all
 refactors_descriptions = AIRefactor::Refactors.descriptions
 
+arguments = ARGV.dup
+
+options_from_config_file = AIRefactor::Cli.load_options_from_config_file
+arguments += options_from_config_file if options_from_config_file
+
+run_config = AIRefactor::RunConfiguration.new
+
 # General options for all refactor types
 option_parser = OptionParser.new do |parser|
-  parser.banner = "Usage: ai_refactor REFACTOR_TYPE INPUT_FILE_OR_DIR [options]\n\nWhere REFACTOR_TYPE is one of: \n- #{refactors_descriptions.to_a.map { |refactor| refactor.join(": ") }.join("\n- ")}\n\n"
+  parser.banner = "Usage: ai_refactor REFACTOR_TYPE_OR_COMMAND_FILE INPUT_FILE_OR_DIR [options]\n\nWhere REFACTOR_TYPE_OR_COMMAND_FILE is either the path to a command YML file, or one of the refactor types to run: \n- #{refactors_descriptions.to_a.map { |refactor| refactor.join(": ") }.join("\n- ")}\n\n"
 
   parser.on("-o", "--output [FILE]", String, "Write output to given file instead of stdout. If no path provided will overwrite input file (will prompt to overwrite existing files). Some refactor tasks will write out to a new file by default. This option will override the tasks default behaviour.") do |f|
-    options[:output_file_path] = f
+    run_config.output_file_path = f
   end
 
   parser.on("-O", "--output-template TEMPLATE", String, "Write outputs to files instead of stdout. The template is used to create the output name, where the it can have substitutions, '[FILE]', '[NAME]', '[DIR]', '[REFACTOR]' & '[EXT]'. Eg `[DIR]/[NAME]_[REFACTOR][EXT]` (will prompt to overwrite existing files)") do |t|
-    options[:output_template_path] = t
+    run_config.output_template_path = t
   end
 
   parser.on("-c", "--context CONTEXT_FILES", Array, "Specify one or more files to use as context for the AI. The contents of these files will be prepended to the prompt sent to the AI.") do |c|
-    options[:context_file_paths] = c
+    run_config.context_file_paths = c
   end
 
   parser.on("-x", "--extra CONTEXT_TEXT", String, "Specify some text to be prepended to the prompt sent to the AI as extra information of note.") do |c|
-    options[:context_text] = c
+    run_config.context_text = c
   end
 
   parser.on("-r", "--review-prompt", "Show the prompt that will be sent to ChatGPT but do not actually call ChatGPT or make changes to files.") do
-    options[:review_prompt] = true
+    run_config.review_prompt = true
   end
 
   parser.on("-p", "--prompt PROMPT_FILE", String, "Specify path to a text file that contains the ChatGPT 'system' prompt.") do |f|
-    options[:prompt_file_path] = f
+    run_config.prompt_file_path = f
   end
 
   parser.on("-f", "--diffs", "Request AI generate diffs of changes rather than writing out the whole file.") do
-    options[:diff] = true
+    run_config.diff = true
   end
 
   parser.on("-C", "--continue [MAX_MESSAGES]", Integer, "If ChatGPT stops generating due to the maximum token count being reached, continue to generate more messages, until a stop condition or MAX_MESSAGES. MAX_MESSAGES defaults to 3") do |c|
-    options[:ai_max_attempts] = c || 3
+    run_config.ai_max_attempts = c
   end
 
   parser.on("-m", "--model MODEL_NAME", String, "Specify a ChatGPT model to use (default gpt-4).") do |m|
-    options[:ai_model] = m
+    run_config.ai_model = m
   end
 
   parser.on("--temperature TEMP", Float, "Specify the temperature parameter for ChatGPT (default 0.7).") do |p|
-    options[:ai_temperature] = p
+    run_config.ai_temperature = p
   end
 
   parser.on("--max-tokens MAX_TOKENS", Integer, "Specify the max number of tokens of output ChatGPT can generate. Max will depend on the size of the prompt (default 1500)") do |m|
-    options[:ai_max_tokens] = m
+    run_config.ai_max_tokens = m
   end
 
   parser.on("-t", "--timeout SECONDS", Integer, "Specify the max wait time for ChatGPT response.") do |m|
-    options[:ai_timeout] = m
+    run_config.ai_timeout = m
   end
 
   parser.on("--overwrite ANSWER", "Always overwrite existing output files, 'y' for yes, 'n' for no, or 'a' for ask. Default to ask.") do |a|
-    options[:overwrite] = a
+    run_config.overwrite = a
   end
 
   parser.on("-N", "--no", "Never overwrite existing output files, same as --overwrite=n.") do |a|
-    options[:overwrite] = "n"
+    run_config.overwrite = "n"
   end
 
   parser.on("-v", "--verbose", "Show extra output and progress info") do
-    options[:verbose] = true
+    run_config.verbose = true
   end
 
   parser.on("-d", "--debug", "Show debugging output to help diagnose issues") do
-    options[:debug] = true
+    run_config.debug = true
   end
 
   parser.on("-h", "--help", "Prints this help") do
@@ -109,23 +114,24 @@ option_parser = OptionParser.new do |parser|
     refactorer.command_line_options.each do |option|
       args = [option[:long], option[:type], option[:help]]
       args.unshift(option[:short]) if option[:short]
+      AIRefactor::RunConfiguration.add_new_option(option[:key])
       parser.on(*args) do |o|
-        options[option[:key]] = o.nil? ? true : o
+        run_config.send("#{option[:key]}=", o.nil? ? true : o)
       end
     end
   end
 end
 
-def exit_with_option_error(message, option_parser)
-  puts message
-  puts option_parser
+def exit_with_option_error(message, option_parser = nil, logger = nil)
+  logger ? logger.error(message, bold: true) : puts(message)
+  puts option_parser if option_parser
   exit false
 end
 
-arguments = ARGV.dup
-
-config_file_path = AIRefactor::Cli.load_options_from_config_file
-arguments += config_file_path if config_file_path
+def exit_with_error(message, logger = nil)
+  logger ? logger.error(message, bold: true) : puts(message)
+  exit false
+end
 
 # If no command was provided, prompt for one in interactive mode
 if arguments.empty? || arguments.all? { |arg| arg.start_with?("-") && !(arg == "-h" || arg == "--help") }
@@ -147,9 +153,6 @@ if arguments.empty? || arguments.all? { |arg| arg.start_with?("-") && !(arg == "
   arguments.prepend(*initial)
 
   # Ask if template should be used - then prompt for it
-  # parser.on("-O", "--output-template TEMPLATE", String, "Write outputs to files instead of stdout. The template is used to create the output name, where the it can have substitutions, '[FILE]', '[NAME]', '[DIR]', '[REFACTOR]' & '[EXT]'. Eg `[DIR]/[NAME]_[REFACTOR][EXT]` (will prompt to overwrite existing files)") do |t|
-  #   options[:output_template_path] = t
-  # end
 
   output = AIRefactor::Cli.request_file_inputs("Enter output file path (blank for refactor default): ", multiple: false)
   arguments.concat(["-o", " #{output}"]) unless output.nil? || output.empty?
@@ -175,16 +178,27 @@ rescue OptionParser::InvalidOption, OptionParser::MissingArgument
   exit_with_option_error($!, option_parser)
 end
 
-logger = AIRefactor::Logger.new(verbose: options[:verbose], debug: options[:debug])
+logger = AIRefactor::Logger.new(verbose: run_config.verbose, debug: run_config.debug)
+logger.info "Loaded config from '#{options_from_config_file}'..." if options_from_config_file
 
-if config_file_path
-  logger.info "Loaded config from '#{config_file_path}'..."
+command_or_file = arguments.shift
+if AIRefactor::CommandFileParser.command_file?(command_or_file)
+  logger.info "Loading refactor command file '#{command_or_file}'..."
+  begin
+    run_config.set!(AIRefactor::CommandFileParser.new(command_or_file).parse)
+  rescue => e
+    exit_with_option_error(e.message, option_parser, logger)
+  end
+else
+  logger.info "Requested to run refactor '#{command_or_file}'..."
 end
 
-job = AIRefactor::Cli.new(refactoring_type: arguments.shift, inputs: arguments, options: options, logger: logger)
+run_config.input_file_paths = arguments
+
+job = AIRefactor::Cli.new(run_config, logger: logger)
 
 unless job.valid?
-  exit_with_option_error("Refactor job failed.", option_parser)
+  exit_with_error("Refactor job failed or was not correctly configured. Did you specify the required inputs or options?.", logger)
 end
 
 unless job.run

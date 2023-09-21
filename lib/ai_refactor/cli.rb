@@ -48,14 +48,20 @@ module AIRefactor
       end
     end
 
-    def initialize(refactoring_type:, inputs:, options:, logger:)
-      @refactoring_type = refactoring_type
-      @inputs = inputs
-      @options = options
+    def initialize(configuration, logger:)
+      @configuration = configuration
       @logger = logger
     end
 
-    attr_reader :refactoring_type, :inputs, :options, :logger
+    attr_reader :configuration, :logger
+
+    def refactoring_type
+      configuration.refactor
+    end
+
+    def inputs
+      configuration.input_file_paths
+    end
 
     def valid?
       return false unless refactorer
@@ -69,7 +75,7 @@ module AIRefactor
       OpenAI.configure do |config|
         config.access_token = ENV.fetch("OPENAI_API_KEY")
         config.organization_id = ENV.fetch("OPENAI_ORGANIZATION_ID", nil)
-        config.request_timeout = options[:ai_timeout] || 240
+        config.request_timeout = configuration.ai_timeout || 240
       end
 
       if refactorer.takes_input_files?
@@ -83,7 +89,7 @@ module AIRefactor
         return_values = expanded_inputs.map do |file|
           logger.info "Processing #{file}..."
 
-          refactor = refactorer.new(file, options, logger)
+          refactor = refactorer.new(file, configuration, logger)
           refactor_returned = refactor.run
           failed = refactor_returned == false
           if failed
@@ -109,7 +115,7 @@ module AIRefactor
         name = refactorer.refactor_name
         logger.info "AI Refactor - #{name} refactor\n"
         logger.info "====================\n"
-        refactor = refactorer.new(nil, options, logger)
+        refactor = refactorer.new(nil, configuration, logger)
         refactor_returned = refactor.run
         failed = refactor_returned == false
         if failed

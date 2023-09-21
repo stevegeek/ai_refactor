@@ -6,7 +6,7 @@ module AIRefactor
       module Minitest
         class RspecToMinitest < BaseRefactor
           def run
-            spec_runner = AIRefactor::TestRunners::RSpecRunner.new(input_file)
+            spec_runner = AIRefactor::TestRunners::RSpecRunner.new(input_file, command_template: options.rspec_run_command)
             logger.verbose "Run spec #{input_file}... (#{spec_runner.command})"
 
             spec_run = spec_runner.run
@@ -32,7 +32,7 @@ module AIRefactor
 
             logger.verbose "Converted #{input_file} to #{output_file_path}..." if result
 
-            minitest_runner = AIRefactor::TestRunners::MinitestRunner.new(output_file_path)
+            minitest_runner = AIRefactor::TestRunners::MinitestRunner.new(output_file_path, command_template: options.minitest_run_command)
 
             logger.verbose "Run generated test file #{output_file_path} (#{minitest_runner.command})..."
             test_run = minitest_runner.run

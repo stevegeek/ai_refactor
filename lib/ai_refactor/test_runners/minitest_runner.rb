@@ -5,7 +5,7 @@ require "open3"
 module AIRefactor
   module TestRunners
     class MinitestRunner
-      def initialize(file_path, command_template: "bundle exec rails test __FILE__")
+      def initialize(file_path, command_template: "ruby __FILE__")
         @file_path = file_path
         @command_template = command_template
       end

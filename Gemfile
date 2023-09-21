@@ -12,3 +12,10 @@ gem "minitest", "~> 5.0"
 gem "standard", "~> 1.3"
 
 gem "dotenv"
+
+# for the examples
+
+gem "rails"
+gem "rspec"
+gem "rspec-rails"
+gem "shoulda-matchers"

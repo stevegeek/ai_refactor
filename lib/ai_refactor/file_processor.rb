@@ -22,7 +22,7 @@ module AIRefactor
     end
 
     def process!
-      logger.debug("Processing #{@prompt.input_file_path} with prompt in #{@prompt.prompt_file_path}")
+      logger.debug("Processing #{@prompt.input_file_path} with prompt in #{options.prompt_file_path}")
       logger.debug("Options: #{options.inspect}")
       messages = @prompt.chat_messages
       if options[:review_prompt]

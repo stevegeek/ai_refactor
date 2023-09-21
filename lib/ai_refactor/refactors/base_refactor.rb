@@ -39,7 +39,7 @@ module AIRefactor
 
       def file_processor
         context = ::AIRefactor::Context.new(files: options[:context_file_paths], text: options[:context_text], logger: logger)
-        prompt = ::AIRefactor::Prompt.new(input_content: input_content, input_path: input_file, output_file_path: output_file_path, prompt_file_path: prompt_file_path, context: context, logger: logger, options: options)
+        prompt = ::AIRefactor::Prompt.new(input_content: input_content, input_path: input_file, output_file_path: output_file_path, prompt: prompt_input, context: context, logger: logger, options: options)
         AIRefactor::FileProcessor.new(prompt: prompt, ai_client: ai_client, output_path: output_file_path, logger: logger, options: options)
       end
 
@@ -102,7 +102,11 @@ module AIRefactor
         false
       end
 
-      def prompt_file_path
+      def prompt_input
+        if options && options[:prompt]&.length&.positive?
+          return options[:prompt]
+        end
+
         file = if options && options[:prompt_file_path]&.length&.positive?
           options[:prompt_file_path]
         else
@@ -112,6 +116,8 @@ module AIRefactor
         file.tap do |prompt|
           raise "No prompt file '#{prompt}' found for #{refactor_name}" unless File.exist?(prompt)
         end
+
+        File.read(file)
       end
 
       def output_file_path
