@@ -1,5 +1,16 @@
 # AI Refactor Changelog
 
+## [0.5.1] - 2023-09-21
+
+### Added
+
+- Support for substitutions in path templates.
+
+### Fixed
+
+- Fixes issue with refactor type specified on command line not being picked up.
+
+
 ## [0.5.0] - 2023-09-21
 
 ### Added
