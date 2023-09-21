@@ -14,7 +14,7 @@ module AIRefactor
       if @text.nil? || @text.empty?
         file_context
       else
-        "Also note: #{@text}\n\n#{file_context}"
+        "\n#{file_context}\n\n#{@text}\n"
       end
     end
 

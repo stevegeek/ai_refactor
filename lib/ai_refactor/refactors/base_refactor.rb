@@ -146,11 +146,7 @@ module AIRefactor
       end
 
       def output_file_path_from_template
-        path = output_template_path.gsub("[FILE]", File.basename(input_file))
-          .gsub("[NAME]", File.basename(input_file, ".*"))
-          .gsub("[DIR]", File.dirname(input_file))
-          .gsub("[REFACTOR]", self.class.refactor_name)
-          .gsub("[EXT]", File.extname(input_file))
+        path = AIRefactor::TemplatedPath.new(input_file, refactor_name, output_template_path).generate
         raise "Output template could not be used" unless path.length.positive?
         path
       end

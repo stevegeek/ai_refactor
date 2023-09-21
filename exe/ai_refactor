@@ -191,6 +191,7 @@ if AIRefactor::CommandFileParser.command_file?(command_or_file)
   end
 else
   logger.info "Requested to run refactor '#{command_or_file}'..."
+  run_config.refactor = command_or_file
 end
 
 run_config.input_file_paths = arguments

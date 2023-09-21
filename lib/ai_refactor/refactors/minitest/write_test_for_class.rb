@@ -19,9 +19,9 @@ module AIRefactor
 
           logger.verbose "Generated #{output_file_path} from #{input_file} ..." if output_content
 
-          minitest_runner = AIRefactor::TestRunners::MinitestRunner.new(output_file_path, command_template: "bundle exec ruby __FILE__")
+          minitest_runner = AIRefactor::TestRunners::MinitestRunner.new(output_file_path, command_template: options.minitest_run_command)
 
-          logger.verbose "Run generated test file #{output_file_path} (#{minitest_runner.command})..."
+          logger.verbose "Run generated test file #{output_file_path} (`#{minitest_runner.command}`)..."
           test_run = minitest_runner.run
 
           if test_run.failed?

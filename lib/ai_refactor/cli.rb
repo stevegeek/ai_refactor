@@ -56,7 +56,7 @@ module AIRefactor
     attr_reader :configuration, :logger
 
     def refactoring_type
-      configuration.refactor
+      configuration.refactor || raise(StandardError, "No refactor provided")
     end
 
     def inputs

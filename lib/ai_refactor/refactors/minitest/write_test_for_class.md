@@ -6,9 +6,9 @@ The output file path is: __{{output_file_path}}__
 
 __{{prompt_header}}__
 
-Only show me the test file code. Do NOT provide any other description of your work. Always enclose the output code in triple backticks (```).
-
 __{{context}}__
+
+Only show me the test file code. Do NOT provide any other description of your work. Always enclose the output code in triple backticks (```).
 
 __{{prompt_footer}}__
 
