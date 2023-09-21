@@ -179,7 +179,7 @@ rescue OptionParser::InvalidOption, OptionParser::MissingArgument
 end
 
 logger = AIRefactor::Logger.new(verbose: run_config.verbose, debug: run_config.debug)
-logger.info "Loaded config from '#{options_from_config_file}'..." if options_from_config_file
+logger.info "Also loaded options from '.ai_refactor' file..." if options_from_config_file&.size&.positive?
 
 command_or_file = arguments.shift
 if AIRefactor::CommandFileParser.command_file?(command_or_file)

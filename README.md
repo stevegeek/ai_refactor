@@ -21,6 +21,35 @@ AI Refactor currently uses [OpenAI's ChatGPT](https://platform.openai.com/).
 
 See the [examples](examples/) directory for some examples of using the tool.
 
+You can run the command files to run the example.
+
+For example, the first example can be run with: (you can add options if desired, eg `-v` for verbose output and `-d` for debug output)
+
+```shell
+./exe/ai_refactor examples/ex1_convert_a_rspec_test_to_minitest.yml
+```
+
+You should see:
+    
+```
+$ ./exe/ai_refactor examples/ex1_convert_a_rspec_test_to_minitest.yml
+Loading refactor command file 'examples/ex1_convert_a_rspec_test_to_minitest.yml'...
+AI Refactor 1 files(s)/dir(s) '["examples/ex1_input_spec.rb"]' with rails/minitest/rspec_to_minitest refactor
+====================
+Processing examples/ex1_input_spec.rb...
+
+No differences found! Conversion worked!
+Refactor succeeded on examples/ex1_input_spec.rb
+
+All files processed successfully!
+Done processing all files!
+```
+
+And find the file `examples/ex1_input_test.rb` has been created. Note the process above also ran the generated test file and compared the output to the original test file.
+
+If you see an error, then try to run it again, or use a different GPT model.
+
+
 ## Available refactors
 
 Write your own prompt:
