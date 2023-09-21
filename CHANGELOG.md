@@ -1,5 +1,15 @@
 # AI Refactor Changelog
 
+## [0.5.0] - 2023-09-21
+
+### Added
+
+- Support for new command files, which are YAML files that can be used to define options for a refactor. This makes it
+  simpler to create configurations for refactors that will be used repeatedly. They can be committed to source control
+  of your project and shared with other developers.
+- Support for configuring the run commands for the test runners
+- Adding real life examples
+
 ## [0.4.0] - 2023-08-15
 
 ### Added
