@@ -4,7 +4,7 @@ module AIRefactor
   module Refactors
     class Custom < BaseRefactor
       def run
-        logger.verbose "Custom refactor to #{input_file}... (using user supplied prompt #{prompt_file_path})"
+        logger.verbose "Custom refactor to #{input_file}... (using user supplied prompt #{prompt_file_path || "from options"})"
         logger.verbose "Write output to #{output_file_path}..." if output_file_path
 
         begin
@@ -26,6 +26,7 @@ module AIRefactor
       private
 
       def prompt_file_path
+        return if options[:prompt]&.length&.positive?
         specified_prompt_path = options[:prompt_file_path]
         if specified_prompt_path&.length&.positive?
           if File.exist?(specified_prompt_path)
