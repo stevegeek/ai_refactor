@@ -1,0 +1,7 @@
+refactor: ruby/write_rbs
+input_file_paths:
+  - examples/ex2_input.rb
+# We need to add context here as our class doesnt actually give any context.
+context_text: "Assume that the inputs can be any numeric type."
+# By default this refactor writes to `sig/...` but here we just put the result in `examples/...`
+output_file_path: examples/outputs/ex2_input.rbs
