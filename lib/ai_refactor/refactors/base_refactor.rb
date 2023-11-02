@@ -39,7 +39,7 @@ module AIRefactor
 
       def file_processor
         context = ::AIRefactor::Context.new(files: options[:context_file_paths], text: options[:context_text], logger: logger)
-        prompt = ::AIRefactor::Prompt.new(input_content: input_content, input_path: input_file, output_file_path: output_file_path, prompt: prompt_input, context: context, logger: logger, options: options)
+        prompt = ::AIRefactor::Prompt.new(input_content: input_content, input_path: input_file, output_file_path: output_file_path, prompt: prompt_input, context: context, logger: logger, prompt_footer: prompt_footer, options: options)
         AIRefactor::FileProcessor.new(prompt: prompt, ai_client: ai_client, output_path: output_file_path, logger: logger, options: options)
       end
 
@@ -102,22 +102,46 @@ module AIRefactor
         false
       end
 
+      def prompt_template_for_refactor
+        location = Module.const_source_location(::AIRefactor::Refactors::BaseRefactor.name)
+        File.join(File.dirname(location.first), "#{refactor_name}.md")
+      end
+
+      def prompt_template_for_refactor?
+        File.exist?(prompt_template_for_refactor)
+      end
+
+      def user_provided_prompt_template?
+        options[:prompt_file_path]&.length&.positive?
+      end
+
+      def prompt_from_file?
+        user_provided_prompt_template? || prompt_template_for_refactor?
+      end
+
+      def user_provided_prompt?
+        options[:prompt]&.length&.positive?
+      end
+
       def prompt_input
-        if options && options[:prompt]&.length&.positive?
-          return options[:prompt]
-        end
-
-        file = if options && options[:prompt_file_path]&.length&.positive?
-          options[:prompt_file_path]
+        if user_provided_prompt_template?
+          file = options[:prompt_file_path]
+          raise "No prompt file '#{file}' found. Check prompt_file_path is valid" unless File.exist?(file)
+          File.read(file)
         else
-          location = Module.const_source_location(::AIRefactor::Refactors::BaseRefactor.name)
-          File.join(File.dirname(location.first), "#{refactor_name}.md")
+          file = prompt_template_for_refactor
+          if File.exist?(file)
+            File.read(file)
+          elsif user_provided_prompt?
+            options[:prompt]
+          else
+            raise "No prompt was provided. Please provide one with the --prompt option or with a command file."
+          end
         end
-        file.tap do |prompt|
-          raise "No prompt file '#{prompt}' found for #{refactor_name}" unless File.exist?(prompt)
-        end
+      end
 
-        File.read(file)
+      def prompt_footer
+        options[:prompt] if user_provided_prompt? && prompt_from_file?
       end
 
       def output_file_path
