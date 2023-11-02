@@ -2,6 +2,7 @@ refactor: rails/minitest/rspec_to_minitest
 input_file_paths:
   - examples/ex1_input_spec.rb
 # We need to add context here as otherwise to tell the AI to require our local test_helper.rb file so that we can run the tests after
-context_text: "In the output test use `require_relative` to include 'test_helper'."
+context_text: "In the output test use `require_relative '../test_helper'` to include 'test_helper'."
 # By default, ai_refactor runs "bundle exec rails test" but this isn't going to work here as we are not actually in a Rails app context in the examples
 minitest_run_command: ruby __FILE__
+output_file_path: examples/outputs/ex1_input_test.rb

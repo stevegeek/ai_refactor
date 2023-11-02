@@ -12,3 +12,5 @@
 .env
 .ai_refactor
 .ai_refactor_history
+Gemfile.lock
+/examples/outputs/
