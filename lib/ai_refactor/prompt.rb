@@ -70,7 +70,7 @@ module AIRefactor
 
     def input_to_process
       return File.read(@input_file_path) if @input_file_path
-      @input_content
+      @input_content || ""
     end
 
     def input_prompt
