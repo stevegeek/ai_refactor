@@ -31,6 +31,6 @@ Gem::Specification.new do |spec|
   # Uncomment to register a new dependency of your gem
   spec.add_dependency "colorize", "< 2.0"
   spec.add_dependency "open3", "< 2.0"
-  spec.add_dependency "ruby-openai", ">= 3.4.0", "< 5.0"
+  spec.add_dependency "ruby-openai", ">= 3.4.0", "< 6.0"
   spec.add_dependency "zeitwerk", "~> 2.6"
 end
