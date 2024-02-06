@@ -81,7 +81,7 @@ module AIRefactor
     end
 
     def ai_model=(value)
-      @ai_model = value || "gpt-4"
+      @ai_model = value || "gpt-4-turbo-preview"
     end
 
     def ai_temperature=(value)

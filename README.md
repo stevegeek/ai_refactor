@@ -134,7 +134,7 @@ Where REFACTOR_TYPE_OR_COMMAND_FILE is either the path to a command YML file, or
     -p, --prompt PROMPT_FILE         Specify path to a text file that contains the ChatGPT 'system' prompt.
     -f, --diffs                      Request AI generate diffs of changes rather than writing out the whole file.
     -C, --continue [MAX_MESSAGES]    If ChatGPT stops generating due to the maximum token count being reached, continue to generate more messages, until a stop condition or MAX_MESSAGES. MAX_MESSAGES defaults to 3
-    -m, --model MODEL_NAME           Specify a ChatGPT model to use (default gpt-4).
+    -m, --model MODEL_NAME           Specify a ChatGPT model to use (default gpt-4-turbo-preview).
         --temperature TEMP           Specify the temperature parameter for ChatGPT (default 0.7).
         --max-tokens MAX_TOKENS      Specify the max number of tokens of output ChatGPT can generate. Max will depend on the size of the prompt (default 1500)
     -t, --timeout SECONDS            Specify the max wait time for ChatGPT response.
@@ -180,7 +180,7 @@ context_text: |
     Some extra info to prepend to the prompt
 diff: true/false (default false)
 ai_max_attempts: max times to generate more if AI does not complete generating (default 3)
-ai_model: ChatGPT model name (default gpt-4)
+ai_model: ChatGPT model name (default gpt-4-turbo-preview)
 ai_temperature: ChatGPT temperature (default 0.7)
 ai_max_tokens: ChatGPT max tokens (default 1500)
 ai_timeout: ChatGPT timeout (default 60)
