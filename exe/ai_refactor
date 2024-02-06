@@ -6,8 +6,6 @@ require "openai"
 require "shellwords"
 require_relative "../lib/ai_refactor"
 
-require "dotenv/load"
-
 supported_refactors = AIRefactor::Refactors.all
 refactors_descriptions = AIRefactor::Refactors.descriptions
 

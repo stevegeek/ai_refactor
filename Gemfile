@@ -11,8 +11,6 @@ gem "minitest", "~> 5.0"
 
 gem "standard", "~> 1.3"
 
-gem "dotenv"
-
 gem "steep"
 
 # for the examples
