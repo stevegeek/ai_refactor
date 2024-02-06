@@ -12,6 +12,7 @@ module AIRefactor
       :output_file_path,
       :output_template_path,
       :context_file_paths,
+      :context_file_paths_from_gems,
       :context_text,
       :review_prompt,
       :prompt,
@@ -54,6 +55,25 @@ module AIRefactor
       @context_file_paths ||= []
       paths = [paths] unless paths.is_a?(Array)
       @context_file_paths.concat(paths)
+    end
+
+    # A hash is passed in, where the keys are gem names that should be in the bundle and the path is a path inside the gem
+    # install location. We resolve the absolute path of each and then add to @context_file_paths
+    def context_file_paths_from_gems=(paths)
+      @context_file_paths ||= []
+      @context_file_paths_from_gems ||= {}
+      @context_file_paths_from_gems.merge!(paths)
+
+      paths.each do |gem_name, paths|
+        paths = [paths] unless paths.is_a?(Array)
+        paths.each do |path|
+          gem_spec = Gem::Specification.find_by_name(gem_name.to_s)
+          raise "Gem #{gem_name} not found" unless gem_spec
+          gem_path = gem_spec.gem_dir
+          full_path = File.join(gem_path, path)
+          @context_file_paths << full_path
+        end
+      end
     end
 
     def context_text=(text)
