@@ -182,6 +182,13 @@ prompt: |
 context_file_paths: 
     - file1.rb
     - file2.rb
+context_file_paths_from_gems:
+  gem_name: 
+    - path/from/gem_root/file1.rb
+    - lib/gem_name/file2.rb
+  gem_name2: 
+    - lib/gem_name2/file1.rb
+    - app/controllers/file2.rb
 # Other configuration options:
 context_text: |
     Some extra info to prepend to the prompt
