@@ -49,8 +49,7 @@ And find the file `examples/ex1_input_test.rb` has been created. Note the proces
 
 If you see an error, then try to run it again, or use a different GPT model.
 
-
-## Available refactors
+## Available refactors & commands
 
 Write your own prompt:
 
@@ -106,6 +105,14 @@ For example, if the input file is `app/stuff/my_thing.rb` the output will be wri
 
 This refactor can benefit from being passed related files as context, for example, if the class under test inherits from another class,
 then context can be used to provide the parent class.
+
+### `quickdraw/0.1.0/convert_minitest`
+
+Convert Minitest or Test::Unit test suite files to [Quickdraw](https://github.com/joeldrapper/quickdraw) test suite files.
+
+Files, by default, are output to the same directory as the input file but with .test.rb extension (and _test removed).
+
+Note: Quickdraw is still missing some features, so some minitest methods are not converted, for example, Quickdraw does not support setup/teardown just yet.
 
 ## Installation
 
