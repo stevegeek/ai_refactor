@@ -8,6 +8,7 @@ module AIRefactor
     end
 
     attr_reader :refactor,
+      :description,
       :input_file_paths,
       :output_file_path,
       :output_template_path,
@@ -34,7 +35,7 @@ module AIRefactor
       end
     end
 
-    attr_writer :refactor
+    attr_writer :refactor, :description
 
     # @deprecated
     def [](key)

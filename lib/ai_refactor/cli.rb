@@ -85,6 +85,9 @@ module AIRefactor
 
         logger.info "AI Refactor #{expanded_inputs.size} files(s)/dir(s) '#{expanded_inputs}' with #{refactorer.refactor_name} refactor\n"
         logger.info "====================\n"
+        if configuration.description
+          logger.info "Description: #{configuration.description}\n"
+        end
 
         return_values = expanded_inputs.map do |file|
           logger.info "Processing #{file}..."

@@ -6,8 +6,9 @@ require "openai"
 require "shellwords"
 require_relative "../lib/ai_refactor"
 
-supported_refactors = AIRefactor::Refactors.all
-refactors_descriptions = AIRefactor::Refactors.descriptions
+supported_refactors = AIRefactor::Refactors.all.merge(AIRefactor::Commands.all)
+supported_refactors_names = supported_refactors.keys
+refactors_descriptions = AIRefactor::Refactors.descriptions.merge(AIRefactor::Commands.descriptions)
 
 arguments = ARGV.dup
 
@@ -137,10 +138,9 @@ if arguments.empty? || arguments.all? { |arg| arg.start_with?("-") && !(arg == "
   # For each option that is required but not provided, prompt for it
   # Put the option in arguments to parse with option_parser
   interactive_log.info "Interactive mode started. You can use tab to autocomplete:"
-  predefined_commands = AIRefactor::Refactors.names
 
-  interactive_log.info "Available refactors: #{predefined_commands.join(", ")}\n"
-  command = AIRefactor::Cli.request_input_with_autocomplete("Enter refactor name: ", predefined_commands)
+  interactive_log.info "Available refactors: #{supported_refactors_names.join(", ")}\n"
+  command = AIRefactor::Cli.request_input_with_autocomplete("Enter refactor name: ", supported_refactors_names)
   exit_with_option_error("No refactor name provided.", option_parser) if command.nil? || command.empty?
   initial = [command]
 
@@ -180,10 +180,12 @@ logger = AIRefactor::Logger.new(verbose: run_config.verbose, debug: run_config.d
 logger.info "Also loaded options from '.ai_refactor' file..." if options_from_config_file&.size&.positive?
 
 command_or_file = arguments.shift
-if AIRefactor::CommandFileParser.command_file?(command_or_file)
-  logger.info "Loading refactor command file '#{command_or_file}'..."
+is_built_in_command = AIRefactor::Commands.supported?(command_or_file)
+if is_built_in_command || AIRefactor::CommandFileParser.command_file?(command_or_file)
+  logger.info "Loading #{is_built_in_command ? "built-in" : "custom"} refactor command file '#{command_or_file}'..."
   begin
-    run_config.set!(AIRefactor::CommandFileParser.new(command_or_file).parse)
+    command_file_path = is_built_in_command ? Commands.get(command_name).path : command_or_file
+    run_config.set!(AIRefactor::CommandFileParser.new(command_file_path).parse)
   rescue => e
     exit_with_option_error(e.message, option_parser, logger)
   end
