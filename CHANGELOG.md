@@ -1,5 +1,35 @@
 # AI Refactor Changelog
 
+
+## [0.5.4] - 2024-02-07
+
+### Added
+- Support for built-in command YML files to make it easy to add new refactors
+- Support for specifying context files from gems with `context_file_paths_from_gems:` key in command templates
+- Command to convert Minitest tests to Quickdraw tests
+
+### Changes
+- Default openAI model is now `gpt-4-turbo-preview`
+
+## [0.5.3] - 2024-02-06
+
+### Added
+- Add runner to run steep on inputs after generating RBS
+- Add refactor to write RBS
+
+### Fixed
+- Removed dependency on `dotenv` gems
+- Update openai dependency
+- Improve prompt handling to allow having custom text prompts from commands that can append to build in prompt templates
+- Custom refactor should allow prompt to come from prompt text option
+
+## [0.5.2] - 2023-09-21
+
+### Added
+
+### Fixed
+- Removed `puts`
+
 ## [0.5.1] - 2023-09-21
 
 ### Added
