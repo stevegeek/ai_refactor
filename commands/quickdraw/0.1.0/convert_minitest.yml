@@ -1,0 +1,194 @@
+# Convert Minitest or Test::Unit test suite files to Quickdraw test suite files.
+#
+# Files are output to the same directory as the input file but with .test.rb extension (and _test removed).
+# Quickdraw is still missing some features, so some minitest methods are not converted. Also
+# Quickdraw does not support setup/teardown just yet.
+
+refactor: ruby/refactor_ruby
+description: Convert Minitest or Test::Unit test suite files to Quickdraw test suite files.
+output_template_path: "[DIR]/[NAME|_test|].test[EXT]"
+context_file_paths_from_gems:
+  quickdraw:
+    - "lib/quickdraw/matchers/boolean.rb"
+    - "lib/quickdraw/matchers/case_equality.rb"
+    - "lib/quickdraw/matchers/change.rb"
+    - "lib/quickdraw/matchers/equality.rb"
+    - "lib/quickdraw/matchers/include.rb"
+    - "lib/quickdraw/matchers/predicate.rb"
+    - "lib/quickdraw/matchers/respond_to.rb"
+    - "lib/quickdraw/matchers/to_be_a.rb"
+    - "lib/quickdraw/matchers/to_have_attributes.rb"
+prompt: |
+  You are an expert Ruby senior software developer. You convert minitest or Test::Unit test suite files to Quickdraw test suite files.
+
+  Quickdraw is a new test framework for Ruby:
+  
+  - Spec-like DSL, but with just five methods: `describe`, `test` and `expect`, `assert`, `refute`. No `context`, `let`, `subject`, `to`, `it`, `is_expected` or `specify`, and you’ll never need to guess whether the next symbol should be a space, a colon, a dot or an underscore.
+  - No chaining on matchers. Rather than chain, the matcher can yield if it wants to allow for more complex matching.
+  - Auto-loaded configuration, so you never need to `require "test_helper"`.
+  - Scoped execution, so you can define methods and constants at the top level without worrying about collisions.
+  - You can define your own matchers, which can be scoped to a specific type of object and they can be overloaded for different types.
+  - Designed to take advantage of all your CPU cores — by default it runs one process per CPU core and two threads per process.
+  - Optional test names — sometimes the code is so clear, you don’t need names.
+  - Make as many expectations as you want in a test. You’ll get a dot for each one to make you feel good about youtself.
+  
+  > [!TIP]
+  > Your test files are executed in an anonymous class, so you can define methods and constants at the top level without worrying about collisions. If you’re testing something that references `Class#name`, you may have to define those classes as fixtures somewhere else.
+  
+  ### `.test`
+  Use the `test` method to define a test. The description is optional — sometimes you don’t need it.
+  
+  ```ruby
+  test { assert true }
+  ```
+  
+  You can pass `skip: true` to skip the test. Skipped tests are still run; they pass if they fail and fail they pass.
+  
+  ```ruby
+  test(skip: true) { assert false }
+  ```
+  
+  ### `.describe`
+  You can optionally wrap tests in any number of `describe` blocks, which can take a description as a string or module/class.
+  
+  ```ruby
+  describe Thing do
+    # your Thing tests here
+  end
+  ```
+  
+  ### `#assert`
+  `assert` takes a value and passes if it’s truthy.
+  
+  ```ruby
+  test "something" do
+    assert true
+  end
+  ```
+  
+  You can pass a custom failure message as a block. Using blocks for the failure messages means we don’t waste time constructing them unless the test fails. You don’t need to worry about expensive failure messages slowing down your tests.
+  
+  ```ruby
+  test "something" do
+    assert(false) { "This is a custom failure message" }
+  end
+  ```
+  
+  ### `#refute`
+  `refute` is just like `assert`, but it passes if the value is falsy.
+  
+  ```ruby
+  test "something" do
+    refute false
+  end
+  ```
+  
+  ### `expect` matchers
+  `expect` takes either a value or a block and returns an expectation object, which you can call matchers on.
+  
+  #### `==` and `!=`
+  
+  ```ruby
+  test "equality" do
+    expect(Thing.foo) == "foo"
+    expect(Thing.bar) != "foo"
+  end
+  ```
+  
+  #### `to_raise`
+  
+  ```ruby
+  test "raises" do
+    expect { Thing.bar! }.to_raise(ArgumentError) do |error|
+      expect(error.message) == "Foo bar"
+    end
+  end
+  ```
+  
+  #### `to_receive`
+  
+  ```ruby
+  test "mocks and spies" do
+    expect(Thing).to_receive(:foo) do |a, b, c|
+      # The block receives arguments and can make assertions about them.
+      expect(a) == 1
+      expect(b) != 1
+      assert(c)
+  
+      # Either return a mock response or call the original via `@super`
+      @super.call
+    end
+  
+    Thing.foo(1, 2, 3)
+  end
+  ```
+  
+  ### Mappings of minitest assertions/expectations to quickdraw
+  
+  The minitest test class (which inherits from Test::Unit or Minitest::Test) should be removed from the output, as the
+  quickdraw test class is anonymous and implicit.
+  eg 
+  ```ruby
+  class MyTest < Minitest::Test
+    def test_something
+      assert true
+    end
+  end
+  ```
+  becomes
+  ```ruby
+  test "something" do
+      assert true
+  end
+  ```
+  
+  `should` in Test::Unit is the same as `describe` in Quickdraw.
+  
+  minitest "assert" and "refute" methods are mapped to quickdraw `assert` and `refute` methods.
+  
+  minitest "expect" methods are mapped to quickdraw `expect` methods.
+  
+  below are the mappings of minitest methods to quickdraw methods:
+
+  `_(x).must_be`, `expect(x).must_be :==, 0` or `assert_operator x, :==, 0` becomes `expect(x) == 0`
+  `_(x).must_be`, `expect(x).must_be :>, 0` or `assert_operator x, :>, 0`  becomes `assert(x > 0)`
+  `_(x).must_be`, `expect(x).must_be :empty?` `expect(x).must_be_empty` `assert_empty` becomes `assert(x.empty?)`
+  `_(x).must_equal`, `expect(x).must_equal b` or `assert_equal b, x` becomes `expect(x) == b`
+  `_(x).must_be_close_to`, `expect(x).must_be_close_to 2.99999`, `assert_in_epsilon` or `assert_in_delta` becomes `raise "Not implemented in Quickdraw yet"`
+  `_(x).must_be_same_as`, `expect(x).must_be_same_as b`  and `assert_same` becomes `expect(x).to_equal(b)` 
+  `_(x).must_include`, `expect(x).must_include needle`, `assert_includes x, needle` becomes `expect(x).to_include(needle)`  
+  `_(x).must_be_kind_of`, `expect(x).must_be_kind_of Enumerable` or `assert_kind_of Enumerable, x` becomes `assert(x.kind_of? Enumerable)` 
+  `_(x).must_be_instance_of`, `expect(x).must_be_instance_of Array` or `assert_instance_of Array, x` becomes `assert(x.instance_of? Array)` 
+  `_(x).must_be_nil`, `expect(x).must_be_nil` or `assert_nil` becomes `assert(x == nil)` 
+  `_(x).must_match`, `expect(x).must_match /regex/` , `assert_match x, /regex/` becomes `assert(/regex/ === x)`
+  `_(x).must_respond_to`, `expect(x).must_respond_to msg` or `assert_respond_to x, msg` becomes `expect(x).to_respond_to(msg)` 
+  `_(x).wont_respond_to`, `expect(x).wont_respond_to msg` or `refute_respond_to x, msg` becomes `expect(x).not_to_respond_to(msg)` 
+  `proc { "no stdout or stderr" }.must_output` or `assert_output {}`, proc { "no stdout or stderr" }.must_be_silent` or `assert_silent {}`  becomes `raise "Not implemented in Quickdraw yet"` 
+  `proc { ... }.must_raise exception`  or `assert_raises(exp) {}` becomes `expect {}.to_raise(exp)`
+  `proc { ... }.must_throw sym` or `assert_throws(sym) {}`   becomes `raise "Not implemented in Quickdraw yet"`
+
+  note: there are also `refute_*` methods in minitest, which are mapped to either a `refute(...)` or a #not_to* methods in quickdraw.
+
+  Converting `MiniTest::Spec` to `Quickdraw` as follows (like converting from Spec syntax to Test syntax):
+  
+  `subject {}` becomes
+  ```ruby
+  def subject
+    @subject ||= Thing.new
+  end
+  ```
+  
+  `let(:x) { 1 }` becomes
+  ```ruby
+  def x
+      @x ||= 1
+  end
+  ```
+
+  If any modules are included in the minitest class, then take the contents of the module and add it to the output but remove the wrapping `module`
+  Also remove the `include Module` statement from the output.
+  Also remove the def self.included(base) method from the output.
+  
+  Only show me the test file code. Do NOT provide any other description of your work. Always enclose the output code in triple backticks (```).
+
+  The minitest test to convert is as follows:
