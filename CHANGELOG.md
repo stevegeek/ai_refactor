@@ -1,5 +1,10 @@
 # AI Refactor Changelog
 
+## [Unreleased]
+
+### Changes
+- Default openAI model is now `gpt-4-turbo`
+
 
 ## [0.5.4] - 2024-02-07
 

@@ -62,7 +62,7 @@ module AIRefactor
 
       response = @ai_client.chat(
         parameters: {
-          model: options[:ai_model] || "gpt-4-turbo-preview",
+          model: options[:ai_model] || "gpt-4-turbo",
           messages: messages,
           temperature: options[:ai_temperature] || 0.7,
           max_tokens: options[:ai_max_tokens] || 1500

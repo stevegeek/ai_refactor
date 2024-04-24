@@ -53,7 +53,7 @@ option_parser = OptionParser.new do |parser|
     run_config.ai_max_attempts = c
   end
 
-  parser.on("-m", "--model MODEL_NAME", String, "Specify a ChatGPT model to use (default gpt-4-turbo-preview).") do |m|
+  parser.on("-m", "--model MODEL_NAME", String, "Specify a ChatGPT model to use (default gpt-4-turbo).") do |m|
     run_config.ai_model = m
   end
 
