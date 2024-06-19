@@ -3,8 +3,20 @@
 ## [Unreleased]
 
 ### Changes
+
+
+## [0.6.0] - 2024-06-19
+
+### Added
+
+- Now supports Anthropic AI models. Eg pass `-m claude-3-opus-20240229` to use the current Claude Opus model.
+
+### Changes
 - Default openAI model is now `gpt-4-turbo`
 
+### Fixed
+
+- example test run should use `bundle exec` to ensure the correct version of the gem is used.
 
 ## [0.5.4] - 2024-02-07
 
