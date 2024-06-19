@@ -18,11 +18,6 @@ module AIRefactor
       :review_prompt,
       :prompt,
       :prompt_file_path,
-      :ai_max_attempts,
-      :ai_model,
-      :ai_temperature,
-      :ai_max_tokens,
-      :ai_timeout,
       :overwrite,
       :diff,
       :verbose,
@@ -97,29 +92,53 @@ module AIRefactor
     attr_writer :rspec_run_command
     attr_writer :minitest_run_command
 
+    def ai_max_attempts
+      @ai_max_attempts || 3
+    end
+
     def ai_max_attempts=(value)
-      @ai_max_attempts = value || 3
+      @ai_max_attempts = value
+    end
+
+    def ai_model
+      @ai_model || "gpt-4-turbo"
     end
 
     def ai_model=(value)
-      @ai_model = value || "gpt-4-turbo"
+      @ai_model = value
     end
 
-    def ai_temperature=(value)
-      @ai_temperature = value || 0.7
+    def ai_platform
+      if ai_model&.start_with?("claude")
+        "anthropic"
+      else
+        "openai"
+      end
     end
 
-    def ai_max_tokens=(value)
-      @ai_max_tokens = value || 1500
+    def ai_temperature
+      @ai_temperature || 0.7
     end
 
-    def ai_timeout=(value)
-      @ai_timeout = value || 60
+    attr_writer :ai_temperature
+
+    def ai_max_tokens
+      @ai_max_tokens || 1500
     end
 
-    def overwrite=(value)
-      @overwrite = value || "a"
+    attr_writer :ai_max_tokens
+
+    def ai_timeout
+      @ai_timeout || 60
     end
+
+    attr_writer :ai_timeout
+
+    def overwrite
+      @overwrite || "a"
+    end
+
+    attr_writer :overwrite
 
     attr_writer :diff
 

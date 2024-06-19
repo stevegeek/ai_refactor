@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.description = "Use OpenAI's ChatGPT to automate converting Rails RSpec tests to minitest (ActiveSupport::TestCase)."
   spec.homepage = "https://github.com/stevegeek/ai_refactor"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 2.7.0"
+  spec.required_ruby_version = ">= 3.3.0"
 
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/stevegeek/ai_refactor"
@@ -32,5 +32,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency "colorize", "< 2.0"
   spec.add_dependency "open3", "< 2.0"
   spec.add_dependency "ruby-openai", ">= 3.4.0", "< 6.0"
+  spec.add_dependency "anthropic", ">= 0.1.0", "< 1.0"
   spec.add_dependency "zeitwerk", "~> 2.6"
 end

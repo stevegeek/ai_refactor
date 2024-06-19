@@ -17,11 +17,12 @@ module AIRefactor
         true
       end
 
-      attr_reader :input_file, :options, :logger
+      attr_reader :ai_client, :input_file, :options, :logger
       attr_accessor :input_content
       attr_writer :failed_message
 
-      def initialize(input_file, options, logger)
+      def initialize(ai_client, input_file, options, logger)
+        @ai_client = ai_client
         @input_file = input_file
         @options = options
         @logger = logger
@@ -79,8 +80,11 @@ module AIRefactor
           output_content
         rescue => e
           logger.error "Request to AI failed: #{e.message}"
+          if e.respond_to?(:response) && e.response
+            logger.error "Response: #{e.response[:body]}"
+          end
           logger.warn "Skipping #{input_file}..."
-          self.failed_message = "Request to OpenAI failed"
+          self.failed_message = "Request to AI API failed"
           raise e
         end
       end
@@ -173,10 +177,6 @@ module AIRefactor
         path = AIRefactor::TemplatedPath.new(input_file, refactor_name, output_template_path).generate
         raise "Output template could not be used" unless path.length.positive?
         path
-      end
-
-      def ai_client
-        @ai_client ||= OpenAI::Client.new
       end
 
       def refactor_name

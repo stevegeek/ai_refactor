@@ -63,6 +63,17 @@ module AIRefactor
       configuration.input_file_paths
     end
 
+    def ai_client
+      @ai_client ||= AIRefactor::AIClient.new(
+        platform: configuration.ai_platform,
+        model: configuration.ai_model,
+        temperature: configuration.ai_temperature,
+        max_tokens: configuration.ai_max_tokens,
+        timeout: configuration.ai_timeout,
+        verbose: configuration.verbose
+      )
+    end
+
     def valid?
       return false unless refactorer
       inputs_valid = refactorer.takes_input_files? ? !(inputs.nil? || inputs.empty?) : true
@@ -71,12 +82,6 @@ module AIRefactor
 
     def run
       return false unless valid?
-
-      OpenAI.configure do |config|
-        config.access_token = ENV.fetch("OPENAI_API_KEY")
-        config.organization_id = ENV.fetch("OPENAI_ORGANIZATION_ID", nil)
-        config.request_timeout = configuration.ai_timeout || 240
-      end
 
       if refactorer.takes_input_files?
         expanded_inputs = inputs.map do |path|
@@ -92,7 +97,7 @@ module AIRefactor
         return_values = expanded_inputs.map do |file|
           logger.info "Processing #{file}..."
 
-          refactor = refactorer.new(file, configuration, logger)
+          refactor = refactorer.new(ai_client, file, configuration, logger)
           refactor_returned = refactor.run
           failed = refactor_returned == false
           if failed
@@ -118,7 +123,7 @@ module AIRefactor
         name = refactorer.refactor_name
         logger.info "AI Refactor - #{name} refactor\n"
         logger.info "====================\n"
-        refactor = refactorer.new(nil, configuration, logger)
+        refactor = refactorer.new(ai_client, nil, configuration, logger)
         refactor_returned = refactor.run
         failed = refactor_returned == false
         if failed

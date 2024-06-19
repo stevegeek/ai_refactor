@@ -3,6 +3,7 @@
 require "optparse"
 require "colorize"
 require "openai"
+require "anthropic"
 require "shellwords"
 require_relative "../lib/ai_refactor"
 
@@ -37,11 +38,11 @@ option_parser = OptionParser.new do |parser|
     run_config.context_text = c
   end
 
-  parser.on("-r", "--review-prompt", "Show the prompt that will be sent to ChatGPT but do not actually call ChatGPT or make changes to files.") do
+  parser.on("-r", "--review-prompt", "Show the prompt that will be sent to the AI but do not actually call the AI or make changes to files.") do
     run_config.review_prompt = true
   end
 
-  parser.on("-p", "--prompt PROMPT_FILE", String, "Specify path to a text file that contains the ChatGPT 'system' prompt.") do |f|
+  parser.on("-p", "--prompt PROMPT_FILE", String, "Specify path to a text file that contains the AI 'system' prompt.") do |f|
     run_config.prompt_file_path = f
   end
 
@@ -49,23 +50,23 @@ option_parser = OptionParser.new do |parser|
     run_config.diff = true
   end
 
-  parser.on("-C", "--continue [MAX_MESSAGES]", Integer, "If ChatGPT stops generating due to the maximum token count being reached, continue to generate more messages, until a stop condition or MAX_MESSAGES. MAX_MESSAGES defaults to 3") do |c|
+  parser.on("-C", "--continue [MAX_MESSAGES]", Integer, "If AI stops generating due to the maximum token count being reached, continue to generate more messages, until a stop condition or MAX_MESSAGES. MAX_MESSAGES defaults to 3") do |c|
     run_config.ai_max_attempts = c
   end
 
-  parser.on("-m", "--model MODEL_NAME", String, "Specify a ChatGPT model to use (default gpt-4-turbo).") do |m|
+  parser.on("-m", "--model MODEL_NAME", String, "Specify a AI model to use (default 'gpt-4-turbo'). OpenAI and Anthropic models supported (eg 'gpt-4o', 'claude-3-opus-20240229')") do |m|
     run_config.ai_model = m
   end
 
-  parser.on("--temperature TEMP", Float, "Specify the temperature parameter for ChatGPT (default 0.7).") do |p|
+  parser.on("--temperature TEMP", Float, "Specify the temperature parameter for generation (default 0.7).") do |p|
     run_config.ai_temperature = p
   end
 
-  parser.on("--max-tokens MAX_TOKENS", Integer, "Specify the max number of tokens of output ChatGPT can generate. Max will depend on the size of the prompt (default 1500)") do |m|
+  parser.on("--max-tokens MAX_TOKENS", Integer, "Specify the max number of tokens of output the AI can generate. Max will depend on the size of the prompt (default 1500)") do |m|
     run_config.ai_max_tokens = m
   end
 
-  parser.on("-t", "--timeout SECONDS", Integer, "Specify the max wait time for ChatGPT response.") do |m|
+  parser.on("-t", "--timeout SECONDS", Integer, "Specify the max wait time for an AI response.") do |m|
     run_config.ai_timeout = m
   end
 

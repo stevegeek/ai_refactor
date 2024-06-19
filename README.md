@@ -2,20 +2,25 @@
 
 __The goal for AIRefactor is to use LLMs to apply repetitive refactoring tasks to code.__
 
-First the human decides what refactoring is needed and builds up a prompt to describe the task, or uses one of AIRefactors provided prompts.
+## The workflow
 
-AIRefactor then helps to apply the refactoring to one or more files.
+1) the human decides what refactoring is needed
+2) the human selects an existing built-in refactoring command, and/or builds up a prompt to describe the task
+3) the human selects some source files to act as context (eg examples of the code post-refactor, or related classes etc)
+4) the human runs the tool with the command, source files and context files
+5) the AI generates the refactored code and outputs it either to a file or stdout.
+6) In some cases, the tool can then check the generated code by running tests and comparing test outputs.
 
-In some cases, the tool can then check the generated code by running tests and comparing test outputs.
+AIRefactor can apply the refactoring to multiple files, allowing batch processing.
 
 #### Notes
 
 AI Refactor is an experimental tool and under active development as I explore the idea myself. It may not work as expected, or
 change in ways that break existing functionality.
 
-The focus of the tool is work with the Ruby programming language ecosystem, but it can be used with any language.
+The focus of the tool is work with the **Ruby programming language ecosystem**, but it can be used with any language.
 
-AI Refactor currently uses [OpenAI's ChatGPT](https://platform.openai.com/).
+AI Refactor currently uses [OpenAI's ChatGPT](https://platform.openai.com/) or [Anthropic Claude](https://docs.anthropic.com/en/docs/about-claude/models) to generate code.
 
 ## Examples
 
@@ -64,7 +69,9 @@ Use a pre-built prompt:
 
 ### User supplied prompts, eg `custom`, `ruby/write_ruby` and `ruby/refactor_ruby`
 
-Applies the refactor specified by prompting the AI with the user supplied prompt. You must supply a prompt file with the `-p` option.
+You can use these commands in conjunction with a user supplied prompt. 
+
+You must supply a prompt file with the `-p` option.
 
 The output is written to `stdout`, or to a file with the `--output` option.
 
@@ -178,7 +185,7 @@ output_file_path: output file or directory
 output_template_path: output file template (see docs)
 prompt_file_path: path
 prompt: |
-  A custom prompt to send to ChatGPT if the command needs it (otherwise read from file)
+  A custom prompt to send to AI if the command needs it (otherwise read from file)
 context_file_paths: 
     - file1.rb
     - file2.rb
@@ -194,10 +201,10 @@ context_text: |
     Some extra info to prepend to the prompt
 diff: true/false (default false)
 ai_max_attempts: max times to generate more if AI does not complete generating (default 3)
-ai_model: ChatGPT model name (default gpt-4-turbo)
-ai_temperature: ChatGPT temperature (default 0.7)
-ai_max_tokens: ChatGPT max tokens (default 1500)
-ai_timeout: ChatGPT timeout (default 60)
+ai_model: AI model name, OpenAI GPT or Anthropic Claude (default gpt-4-turbo)
+ai_temperature: AI temperature (default 0.7)
+ai_max_tokens: AI max tokens (default 1500)
+ai_timeout: AI timeout (default 60)
 overwrite: y/n/a (default a)
 verbose: true/false (default false)
 debug: true/false (default false)
@@ -260,12 +267,6 @@ This file provides default CLI switches to add to any `ai_refactor` command.
 ## Command history
 
 The tool keeps a history of commands run in the `.ai_refactor_history` file in the current working directory.
-
-## Note on performance and ChatGPT version
-
-_The quality of results depend very much on the version of ChatGPT being used._
-
-I have tested with both 3.5 and 4 and see **significantly** better performance with version 4.
 
 ## Development
 

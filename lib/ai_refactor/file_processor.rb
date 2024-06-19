@@ -60,35 +60,21 @@ module AIRefactor
       logger.debug "Options: #{options.inspect}"
       logger.debug "Messages: #{messages.inspect}"
 
-      response = @ai_client.chat(
-        parameters: {
-          model: options[:ai_model] || "gpt-4-turbo",
-          messages: messages,
-          temperature: options[:ai_temperature] || 0.7,
-          max_tokens: options[:ai_max_tokens] || 1500
-        }
-      )
-
-      if response["error"]
-        raise StandardError.new("OpenAI error: #{response["error"]["type"]}: #{response["error"]["message"]} (#{response["error"]["code"]})")
-      end
-
-      content = response.dig("choices", 0, "message", "content")
-      finished_reason = response.dig("choices", 0, "finish_reason")
-
-      if finished_reason == "length" && attempts_left > 0
-        generate_next_message(messages + [
-          {role: "assistant", content: content},
-          {role: "user", content: "Continue"}
-        ], options, attempts_left - 1)
-      else
-        previous_messages = messages.filter { |m| m[:role] == "assistant" }.map { |m| m[:content] }.join
-        content = if previous_messages.length > 0
-          content ? previous_messages + content : previous_messages
+      @ai_client.generate!(messages) do |finished_reason, content, response|
+        if finished_reason == "length" && attempts_left > 0
+          generate_next_message(messages + [
+            {role: "assistant", content: content},
+            {role: "user", content: "Continue"}
+          ], options, attempts_left - 1)
         else
-          content
+          previous_messages = messages.filter { |m| m[:role] == "assistant" }.map { |m| m[:content] }.join
+          content = if previous_messages.length > 0
+            content ? previous_messages + content : previous_messages
+          else
+            content
+          end
+          [content, finished_reason, response["usage"]]
         end
-        [content, finished_reason, response["usage"]]
       end
     end
 

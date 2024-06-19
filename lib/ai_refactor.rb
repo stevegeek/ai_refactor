@@ -4,6 +4,7 @@ require "zeitwerk"
 loader = Zeitwerk::Loader.for_gem
 loader.inflector.inflect(
   "ai_refactor" => "AIRefactor",
+  "ai_client" => "AIClient",
   "rspec_runner" => "RSpecRunner"
 )
 loader.setup # ready!

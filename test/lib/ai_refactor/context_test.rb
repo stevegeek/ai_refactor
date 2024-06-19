@@ -33,7 +33,7 @@ module AIRefactor
       @context = Context.new(files: ["file1"], text: "Hi!", logger: @logger)
       File.stub :exist?, lambda { |file| file == "file1" } do
         File.stub :read, "content" do
-          expected_output = "Also note: Hi!\n\nHere is some related files:\n\n#---\n# File 'file1':\n\n```content```\n"
+          expected_output = "\nHere is some related files:\n\n#---\n# File 'file1':\n\n```content```\n\n\nHi!\n"
           assert_equal expected_output, @context.prepare_context
           @logger.verify
         end
