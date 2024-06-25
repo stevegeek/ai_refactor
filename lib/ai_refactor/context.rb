@@ -22,7 +22,7 @@ module AIRefactor
 
     def read_contexts
       @files&.map do |file|
-        unless File.exist?(file)
+        unless file && File.exist?(file)
           @logger.warn "Context file #{file} does not exist"
           next
         end
