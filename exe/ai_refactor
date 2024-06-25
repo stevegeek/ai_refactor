@@ -116,7 +116,7 @@ option_parser = OptionParser.new do |parser|
       args.unshift(option[:short]) if option[:short]
       AIRefactor::RunConfiguration.add_new_option(option[:key])
       parser.on(*args) do |o|
-        run_config.send("#{option[:key]}=", o.nil? ? true : o)
+        run_config.send(:"#{option[:key]}=", o.nil? ? true : o)
       end
     end
   end

@@ -111,14 +111,16 @@ module AIRefactor
           failed ? [file, refactor.failed_message] : true
         end
 
+        logger.info "Done processing all files..."
+
         if return_values.all?(true)
           logger.success "All files processed successfully!"
+          true
         else
           files = return_values.select { |v| v != true }
           logger.warn "Some files failed to process:\n#{files.map { |f| "#{f[0]} :\n > #{f[1]}" }.join("\n")}"
+          false
         end
-
-        logger.info "Done processing all files!"
       else
         name = refactorer.refactor_name
         logger.info "AI Refactor - #{name} refactor\n"
@@ -128,11 +130,13 @@ module AIRefactor
         failed = refactor_returned == false
         if failed
           logger.warn "Refactor failed with #{name}\nFailed due to: #{refactor.failed_message}\n"
+          false
         else
           logger.success "Refactor succeeded with #{name}\n"
           if refactor_returned.is_a?(String)
             logger.info "Refactor output:\n\n#{refactor_returned}\n\n"
           end
+          true
         end
       end
     end
