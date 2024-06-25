@@ -58,7 +58,7 @@ module AIRefactor
             if block_given?
               yield content
             elsif strip_ticks
-              content.gsub("```ruby", "").gsub("```", "")
+              content.gsub(/```[a-z]+/, "").gsub("```", "")
             else
               content
             end
