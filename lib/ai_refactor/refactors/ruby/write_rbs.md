@@ -103,6 +103,9 @@ module ChatApp
 end
 ```
 
+Note, when writing the RBS for a class method, eg one in a `class << self` block, use `def self.method` in the
+type definition.
+
 Do not include comments in your RBS code or start the file with 'rbs' or '.rbs'.
 
 __{{context}}__
