@@ -34,4 +34,5 @@ Gem::Specification.new do |spec|
   spec.add_dependency "ruby-openai", ">= 3.4.0", "< 6.0"
   spec.add_dependency "anthropic", ">= 0.1.0", "< 1.0"
   spec.add_dependency "zeitwerk", "~> 2.6"
+  spec.add_dependency "bundler", "> 1.3"
 end

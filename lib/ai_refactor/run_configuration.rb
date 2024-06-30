@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "bundler"
+
 module AIRefactor
   class RunConfiguration
     def self.add_new_option(key)
@@ -58,14 +60,16 @@ module AIRefactor
     def context_file_paths_from_gems=(paths)
       @context_file_paths ||= []
       @context_file_paths_from_gems ||= {}
+      raise ArgumentError, "context_file_paths_from_gems should be a hash, where the key is the gem name and the values are arrays of relative file paths" unless paths.is_a?(Hash)
       @context_file_paths_from_gems.merge!(paths)
 
       paths.each do |gem_name, paths|
+        gem_name = gem_name.to_s
         paths = [paths] unless paths.is_a?(Array)
         paths.each do |path|
-          gem_spec = Gem::Specification.find_by_name(gem_name.to_s)
+          gem_spec = Bundler.definition.specs.find { |spec| spec.name == gem_name }
           raise "Gem #{gem_name} not found" unless gem_spec
-          gem_path = gem_spec.gem_dir
+          gem_path = gem_spec.full_gem_path
           full_path = File.join(gem_path, path)
           @context_file_paths << full_path
         end
