@@ -5,8 +5,8 @@ require "bundler"
 module AIRefactor
   class RunConfiguration
     def self.add_new_option(key)
-      self.class.define_method(key) { instance_variable_get("@#{key}") }
-      self.class.define_method("#{key}=") { |v| instance_variable_set("@#{key}", v) }
+      self.class.define_method(key) { instance_variable_get(:"@#{key}") }
+      self.class.define_method(:"#{key}=") { |v| instance_variable_set(:"@#{key}", v) }
     end
 
     attr_reader :refactor,
@@ -27,8 +27,8 @@ module AIRefactor
 
     def set!(hash)
       hash.each do |key, value|
-        raise StandardError, "Invalid option: #{key}" unless respond_to?("#{key}=")
-        send("#{key}=", value)
+        raise StandardError, "Invalid option: #{key}" unless respond_to?(:"#{key}=")
+        send(:"#{key}=", value)
       end
     end
 
@@ -100,17 +100,13 @@ module AIRefactor
       @ai_max_attempts || 3
     end
 
-    def ai_max_attempts=(value)
-      @ai_max_attempts = value
-    end
+    attr_writer :ai_max_attempts
 
     def ai_model
       @ai_model || "gpt-4-turbo"
     end
 
-    def ai_model=(value)
-      @ai_model = value
-    end
+    attr_writer :ai_model
 
     def ai_platform
       if ai_model&.start_with?("claude")
