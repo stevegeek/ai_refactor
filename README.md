@@ -1,3 +1,11 @@
+# Deprecated
+
+[Claude code](https://docs.anthropic.com/en/docs/agents-and-tools/claude-code) now fulfils the main goals of `ai_refactor`, and is a more complete tool. 
+
+Claude code "custom slash commands" take on from the idea of `ai_refactor`'s command files. I will likely port the command files to Claude code slash commands and share them in the future.
+
+I will not be updating this tool further.
+
 # AIRefactor for Ruby
 
 __The goal for AIRefactor is to use LLMs to apply repetitive refactoring tasks to code.__
